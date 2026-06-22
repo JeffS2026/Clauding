@@ -1,1 +1,1632 @@
-<!-- placeholder -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk depth × application volume simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* ============================================================
+   Fraud Model Simulator v2 — Sleek redesign + dark mode
+   ============================================================ */
+
+/* === Design tokens === */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --text: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --border: rgba(15,23,42,.07);
+  --border-2: rgba(15,23,42,.13);
+  --blue: #185fa5;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-dark: #104e8a;
+  --pink: #be185d;
+  --pink-50: #fdf2f8;
+  --green: #166534;
+  --green-50: #f0fdf4;
+  --amber: #92400e;
+  --amber-50: #fffbeb;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
+  --shadow: 0 4px 12px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.08);
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --t: 140ms ease;
+  --t-slow: 280ms ease;
+  --bar-h: 54px;
+}
+
+[data-theme="dark"] {
+  --bg: #070d1a;
+  --surface: #0f172a;
+  --surface-2: #1e293b;
+  --surface-3: #273549;
+  --text: #f1f5f9;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --border: rgba(241,245,249,.06);
+  --border-2: rgba(241,245,249,.11);
+  --blue-50: #172041;
+  --blue-100: #1e3a5f;
+  --pink-50: #3b0a23;
+  --green-50: #0d2418;
+  --amber-50: #291505;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  --shadow: 0 4px 12px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.3);
+}
+
+/* === Reset & base === */
+*, *::before, *::after { box-sizing: border-box }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--t-slow), color var(--t-slow);
+}
+button, input, select, textarea { font: inherit }
+
+/* === Utilities === */
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0 }
+.hidden { display: none !important }
+.muted { color: var(--text-3); font-size: 12px; line-height: 1.4 }
+.hint { color: var(--text-3); font-size: 12px; line-height: 1.5; margin: 0 0 14px }
+
+/* === Sticky bar === */
+.sticky-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 0 24px;
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background var(--t-slow), border-color var(--t-slow);
+}
+.bar-metrics { display: flex; align-items: center; gap: 4px; overflow: hidden; flex: 1 }
+.bar-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  white-space: nowrap;
+  transition: background var(--t-slow);
+}
+.bar-metric-label { color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em }
+.bar-metric-value { font-weight: 700; color: var(--blue); font-size: 13px; letter-spacing: -.01em; font-variant-numeric: tabular-nums }
+.bar-sep { width: 1px; height: 18px; background: var(--border-2); flex-shrink: 0; margin: 0 2px }
+.bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0 }
+
+/* Theme toggle */
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), color var(--t);
+  padding: 0;
+}
+.theme-toggle:hover { background: var(--surface-2); color: var(--text) }
+.theme-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+
+/* Status pill */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid rgba(24,95,165,.22);
+  background: var(--blue-50);
+  color: var(--blue);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  transition: background var(--t-slow), border-color var(--t-slow), color var(--t-slow);
+}
+.pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .6 }
+
+/* === Layout === */
+.viz-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 52px }
+
+/* === Hero === */
+.hero { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--border) }
+.eyebrow { margin: 0 0 8px; color: var(--blue); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase }
+h1 { margin: 0 0 10px; font-size: 27px; font-weight: 700; line-height: 1.1; letter-spacing: -.03em }
+h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em }
+h3 { margin: 0 0 10px; font-size: 10px; font-weight: 700; color: var(--text-3); letter-spacing: .09em; text-transform: uppercase }
+.hero p { max-width: 680px; margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.65 }
+
+/* === Panels === */
+.panel {
+  margin-bottom: 14px; padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+  transition: background var(--t-slow), border-color var(--t-slow);
+}
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px }
+
+/* === Form elements === */
+label {
+  display: block; margin-bottom: 6px;
+  color: var(--text-2); font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+}
+input, select, textarea {
+  width: 100%;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  transition: border-color var(--t), box-shadow var(--t), background var(--t-slow);
+}
+input, select { height: 40px; padding: 0 12px }
+textarea {
+  min-height: 260px; padding: 12px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5; resize: vertical;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(24,95,165,.12);
+}
+input[type="checkbox"] { width: auto; height: auto }
+small { color: var(--text-3); font-size: 11px; line-height: 1.4; margin-top: 5px; display: block }
+
+/* === Controls grid === */
+.controls-grid { display: grid; grid-template-columns: repeat(4, minmax(150px,1fr)); gap: 16px; align-items: start }
+
+/* === Buttons === */
+.button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; align-items: center }
+button {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-2);
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  padding: 8px 14px;
+  transition: background var(--t), border-color var(--t), color var(--t), box-shadow var(--t);
+  white-space: nowrap;
+}
+button:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--text) }
+button svg { width: 13px; height: 13px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+button.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600 }
+button.primary:hover { background: var(--blue-dark); border-color: var(--blue-dark) }
+button.ghost { border-color: transparent }
+button.ghost:hover { background: var(--surface-2); border-color: var(--border) }
+button.danger { color: var(--pink) }
+button.danger:hover { background: var(--pink-50); border-color: rgba(190,24,93,.18) }
+button.sm { font-size: 12px; padding: 5px 10px }
+button.icon-btn { width: 30px; height: 30px; padding: 0; justify-content: center; flex-shrink: 0; border-radius: var(--radius-xs) }
+.flex-spacer { flex: 1 }
+
+/* === Model grid & cards === */
+.model-section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px }
+.model-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px }
+.model-card {
+  padding: 15px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); box-shadow: var(--shadow-xs);
+  transition: border-color var(--t), box-shadow var(--t), opacity var(--t-slow), background var(--t-slow);
+}
+.model-card.excluded { opacity: .45 }
+.model-card:focus-within { border-color: rgba(24,95,165,.28); box-shadow: var(--shadow-sm) }
+.model-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px }
+.model-name-wrap { flex: 1; min-width: 0 }
+.model-top-right { display: flex; align-items: center; gap: 5px; padding-top: 22px; flex-shrink: 0 }
+.include-toggle { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-3); font-weight: 600; white-space: nowrap; cursor: pointer; text-transform: uppercase; letter-spacing: .03em }
+.include-toggle input { width: auto; height: auto }
+.model-fields { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px }
+.auto-row {
+  display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0;
+  color: var(--text-3); font-size: 11px; line-height: 1.4;
+  text-transform: none; letter-spacing: 0; font-weight: 500; cursor: pointer;
+}
+.auto-row input { width: auto; height: auto; margin-top: 2px; flex-shrink: 0 }
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px }
+.mini-stat { padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); transition: background var(--t-slow) }
+.mini-stat span { display: block; margin-bottom: 2px; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
+.mini-stat strong { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums }
+.mini-chart { margin-top: 10px; height: 56px; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); border: 1px solid var(--border); transition: background var(--t-slow) }
+.mini-chart svg { width: 100%; height: 100%; display: block }
+.source-note { margin-top: 10px; color: var(--text-3); font-size: 11px; line-height: 1.4 }
+
+/* === JSON config section === */
+.config-details { margin-top: 16px }
+.config-details summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-2); padding: 8px 0; user-select: none }
+.config-details summary:hover { color: var(--text) }
+.config-details[open] summary { color: var(--text) }
+
+/* === Warning / info banner === */
+.warning-banner {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: var(--amber-50);
+  border: 1px solid rgba(146,64,14,.2);
+  border-radius: var(--radius-sm);
+  color: var(--amber); font-size: 12px; line-height: 1.5;
+  transition: background var(--t-slow);
+}
+.warning-banner.info { background: var(--blue-50); border-color: rgba(24,95,165,.2); color: var(--blue) }
+
+/* === Summary grid === */
+.summary-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 14px }
+.summary-card {
+  padding: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-xs);
+  transition: background var(--t-slow), border-color var(--t-slow);
+}
+.summary-card span { display: block; margin-bottom: 4px; color: var(--text-2); font-size: 12px; font-weight: 500 }
+.summary-card strong { display: block; font-size: 26px; font-weight: 700; line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums }
+.summary-card small { display: block; margin-top: 5px; color: var(--text-3); font-size: 11px }
+
+/* === Confusion matrix === */
+.matrix-panel { padding: 20px }
+.matrix-shell { display: grid; grid-template-columns: auto 1fr; align-items: center }
+.matrix-right {}
+.axis-y { writing-mode: vertical-rl; transform: rotate(180deg); padding-right: 8px; text-align: center; color: var(--text-3); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase }
+.axis-x { text-align: center; margin-bottom: 6px; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em }
+.x-labels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px }
+.x-labels span { text-align: center; color: var(--text-3); font-size: 12px; font-weight: 500 }
+.matrix-row { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px; align-items: stretch; margin-bottom: 8px }
+.matrix-row:last-child { margin-bottom: 0 }
+.row-label { writing-mode: vertical-rl; transform: rotate(180deg); display: flex; align-items: center; justify-content: center; padding-right: 4px; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
+.cell {
+  display: flex; min-height: 100px; align-items: center; justify-content: center; flex-direction: column;
+  padding: 16px; border-radius: 12px; text-align: center;
+  outline: 2px solid transparent; outline-offset: -2px;
+}
+.cell span { margin-bottom: 5px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase }
+.cell strong { font-size: 26px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums }
+.cell small { margin-top: 4px; font-size: 11px }
+.tp { background: var(--blue-50); outline-color: var(--blue) }
+.tp span { color: var(--blue); opacity: .75 }
+.tp strong { color: var(--blue) }
+.tp small { color: var(--blue); opacity: .65 }
+.fn { background: var(--pink-50); outline-color: var(--pink) }
+.fn span { color: var(--pink); opacity: .8 }
+.fn strong { color: var(--pink) }
+.fn small { color: var(--pink); opacity: .7 }
+.fp { background: var(--amber-50); outline-color: var(--amber) }
+.fp span { color: var(--amber); opacity: .8 }
+.fp strong { color: var(--amber) }
+.fp small { color: var(--amber); opacity: .7 }
+.tn { background: var(--green-50); outline-color: var(--green) }
+.tn span { color: var(--green); opacity: .8 }
+.tn strong { color: var(--green) }
+.tn small { color: var(--green); opacity: .7 }
+.metrics-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 16px }
+.metrics-grid article { padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; transition: background var(--t-slow) }
+.metrics-grid span { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 12px; font-weight: 500 }
+.metrics-grid strong { display: block; font-size: 24px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums }
+.metrics-grid small { display: block; margin-top: 3px; color: var(--text-3); font-size: 11px }
+
+/* === Formula cards === */
+.formula-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px }
+.formula-card { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); transition: background var(--t-slow) }
+.formula-card code { display: block; min-height: 40px; white-space: normal; color: var(--text); font-family: var(--mono); font-size: 12px; line-height: 1.5 }
+.formula-card p { margin: 8px 0 0; color: var(--text-3); font-size: 12px; line-height: 1.5 }
+
+/* === Tables === */
+.table-wrap { overflow: auto; margin-top: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); transition: background var(--t-slow) }
+table { width: 100%; min-width: 880px; border-collapse: collapse }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums }
+th:first-child, td:first-child { text-align: left }
+th { background: var(--surface-2); color: var(--text-3); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; transition: background var(--t-slow) }
+tr:last-child td { border-bottom: 0 }
+tr:hover td { background: var(--surface-2); transition: background var(--t) }
+
+/* === Responsive === */
+@media (max-width: 1100px) {
+  .controls-grid { grid-template-columns: repeat(2, minmax(150px,1fr)) }
+  .model-grid { grid-template-columns: 1fr 1fr }
+  .summary-grid { grid-template-columns: repeat(3,1fr) }
+  .formula-grid, .metrics-grid { grid-template-columns: repeat(2,1fr) }
+  .bar-metric:nth-child(n+8) { display: none }
+}
+@media (max-width: 720px) {
+  .model-grid { grid-template-columns: 1fr }
+  .bar-metric:nth-child(n+6) { display: none }
+}
+@media (max-width: 600px) {
+  .viz-wrap { padding: 18px 14px 40px }
+  .sticky-bar { padding: 0 14px }
+  .controls-grid, .summary-grid, .formula-grid, .metrics-grid, .model-fields, .mini-grid { grid-template-columns: 1fr }
+  .section-head, .model-section-head { align-items: flex-start; flex-direction: column }
+  .summary-card strong, .cell strong { font-size: 22px }
+  .matrix-row { grid-template-columns: 1fr }
+  .row-label, .axis-y, .x-labels { display: none }
+  .bar-metric:nth-child(n+4) { display: none }
+}
+
+  </style>
+</head>
+<body>
+<h2 class="sr-only">Interactive combined model lift chart visualization using risk depth and application volume.</h2>
+
+<!-- Sticky metrics bar -->
+<div class="sticky-bar">
+  <div class="bar-metrics">
+    <div class="bar-metric">
+      <span class="bar-metric-label">Depth</span>
+      <span class="bar-metric-value" id="bar-depth">—</span>
+    </div>
+    <div class="bar-sep"></div>
+    <div class="bar-metric">
+      <span class="bar-metric-label">Flagged</span>
+      <span class="bar-metric-value" id="bar-flagged">—</span>
+    </div>
+    <div class="bar-sep"></div>
+    <div class="bar-metric">
+      <span class="bar-metric-label">Fraud cases</span>
+      <span class="bar-metric-value" id="bar-fraud">—</span>
+    </div>
+    <div class="bar-sep"></div>
+    <div class="bar-metric">
+      <span class="bar-metric-label">Capture</span>
+      <span class="bar-metric-value" id="bar-capture">—</span>
+    </div>
+    <div class="bar-sep"></div>
+    <div class="bar-metric">
+      <span class="bar-metric-label">Precision</span>
+      <span class="bar-metric-value" id="bar-precision">—</span>
+    </div>
+  </div>
+  <div class="bar-right">
+    <span id="status-pill" class="pill">Global fraud base</span>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg id="icon-sun" viewBox="0 0 24 24" style="display:none">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <svg id="icon-moon" viewBox="0 0 24 24">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="viz-wrap">
+  <header class="hero">
+    <p class="eyebrow">Configurable combined model output</p>
+    <h1>Risk depth × application volume simulator</h1>
+    <p>
+      Combined review depth estimates unique applicants reviewed after model overlap is deduped.
+      Adjust model depths, fraud rates, and overlap parameters to simulate combined performance across any configuration of models.
+    </p>
+  </header>
+
+  <!-- ── Scenario controls ─────────────────────────────── -->
+  <section class="panel" aria-label="Scenario controls">
+    <div class="section-head">
+      <h2>Scenario controls</h2>
+    </div>
+
+    <div class="controls-grid">
+      <div>
+        <label for="application-volume">Application volume</label>
+        <input id="application-volume" type="number" min="1" step="1000" value="943500">
+        <small>Total applications in the scenario.</small>
+      </div>
+
+      <div>
+        <label id="fraud-rate-label" for="fraud-rate">Fraud rate (%)</label>
+        <input id="fraud-rate" type="number" min="0" max="100" step="0.01" value="2.00">
+        <small id="fraud-rate-help">Default: 2.00% total fraud across the population.</small>
+      </div>
+
+      <div>
+        <label for="fraud-base-mode">Fraud base mode</label>
+        <select id="fraud-base-mode">
+          <option value="global" selected>Global population fraud</option>
+          <option value="perType">Per-model / type fraud base</option>
+        </select>
+        <small id="fraud-mode-help">Global mode keeps the fraud universe fixed when models are added.</small>
+      </div>
+
+      <div id="global-capture-mode-wrap">
+        <label for="global-capture-mode">Global capture estimate</label>
+        <select id="global-capture-mode">
+          <option value="conservative" selected>Best selected model</option>
+          <option value="independent">Independent OR estimate</option>
+          <option value="pairwise">Pairwise dedupe estimate</option>
+          <option value="custom">Custom combined capture</option>
+        </select>
+        <small>Used only when fraud base mode is global.</small>
+      </div>
+
+      <div id="custom-capture-wrap" class="hidden">
+        <label for="custom-global-capture">Custom combined fraud capture (%)</label>
+        <input id="custom-global-capture" type="number" min="0" max="100" step="0.1" value="74.14">
+        <small>Use measured combined recall when available.</small>
+      </div>
+
+      <div>
+        <label for="pairwise-overlap">Pairwise overlap (%)</label>
+        <input id="pairwise-overlap" type="number" min="0" max="50" step="0.1" value="15.0">
+        <small>Workbook default: 15.0%.</small>
+      </div>
+
+      <div>
+        <label for="review-overlap-basis">Mixed-depth review overlap</label>
+        <select id="review-overlap-basis">
+          <option value="min">Use smaller depth for each pair</option>
+          <option value="average">Use average depth for each pair</option>
+          <option value="none">No review overlap</option>
+          <option value="custom">Custom combined review depth</option>
+        </select>
+        <small>Equal-depth checkpoints match the workbook under min or average.</small>
+      </div>
+
+      <div id="custom-depth-wrap" class="hidden">
+        <label for="custom-depth">Custom combined review depth (%)</label>
+        <input id="custom-depth" type="number" min="0" max="100" step="0.1" value="7.65">
+        <small>Use measured unique reviewed applications when available.</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Model inputs ──────────────────────────────────── -->
+  <section class="panel" aria-label="Model inputs">
+    <div class="model-section-head">
+      <h2>Model inputs</h2>
+      <button id="add-model" type="button">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add model
+      </button>
+    </div>
+
+    <div id="model-cards" class="model-grid"></div>
+
+    <div class="button-row">
+      <button id="sync-config" type="button">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.01-8.49"/></svg>
+        Refresh JSON
+      </button>
+      <button id="apply-config" type="button" class="primary">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Apply JSON
+      </button>
+      <button id="reset-defaults" type="button">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        Reset defaults
+      </button>
+      <div class="flex-spacer"></div>
+      <button id="export-config" type="button">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export JSON
+      </button>
+      <button id="import-config-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import JSON
+      </button>
+      <input id="import-file-input" type="file" accept=".json,application/json" style="display:none" aria-hidden="true">
+      <button id="copy-config" type="button">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy JSON
+      </button>
+    </div>
+
+    <details class="config-details" id="config-details">
+      <summary>Advanced: edit full config JSON</summary>
+      <textarea id="config-json" spellcheck="false"></textarea>
+      <small>Edit labels, lookup points, defaults, and workbook checkpoints. Click Apply JSON after editing.</small>
+    </details>
+  </section>
+
+  <!-- ── Warning banner (hidden by default) ────────────── -->
+  <div id="warning-banner" class="warning-banner hidden" role="alert"></div>
+
+  <!-- ── Summary cards ─────────────────────────────────── -->
+  <section class="summary-grid" aria-label="Combined scenario summary">
+    <article class="summary-card">
+      <span>Combined review depth</span>
+      <strong id="s-depth">—</strong>
+      <small id="s-depth-sub">Deduped applicant review rate</small>
+    </article>
+    <article class="summary-card">
+      <span>Flagged applications</span>
+      <strong id="s-flagged">—</strong>
+      <small id="s-flagged-sub">Unique applicants sent to review</small>
+    </article>
+    <article class="summary-card">
+      <span id="s-fraud-title">Actual fraud cases</span>
+      <strong id="s-fraud-universe">—</strong>
+      <small id="s-fraud-universe-sub">Across selected fraud types</small>
+    </article>
+    <article class="summary-card">
+      <span>Fraud capture</span>
+      <strong id="s-capture">—</strong>
+      <small id="s-capture-sub">TP / unique fraud</small>
+    </article>
+    <article class="summary-card">
+      <span>Precision</span>
+      <strong id="s-precision">—</strong>
+      <small id="s-precision-sub">TP / reviewed applicants</small>
+    </article>
+  </section>
+
+  <!-- ── Confusion matrix ──────────────────────────────── -->
+  <section class="panel matrix-panel" aria-label="Confusion matrix">
+    <div class="section-head">
+      <h2>Confusion matrix</h2>
+    </div>
+    <div class="matrix-shell">
+      <div class="axis-y">Observed</div>
+      <div class="matrix-right">
+        <div class="axis-x">Predicted</div>
+        <div class="x-labels">
+          <span>Fraud / flagged</span>
+          <span>Legit / passed</span>
+        </div>
+        <div class="matrix-row">
+          <div class="row-label">Actual fraud</div>
+          <article class="cell tp">
+            <span>True positive</span>
+            <strong id="tp-val">—</strong>
+            <small id="tp-sub"></small>
+          </article>
+          <article class="cell fn">
+            <span>False negative</span>
+            <strong id="fn-val">—</strong>
+            <small id="fn-sub"></small>
+          </article>
+        </div>
+        <div class="matrix-row">
+          <div class="row-label">Actual legit</div>
+          <article class="cell fp">
+            <span>False positive</span>
+            <strong id="fp-val">—</strong>
+            <small id="fp-sub"></small>
+          </article>
+          <article class="cell tn">
+            <span>True negative</span>
+            <strong id="tn-val">—</strong>
+            <small id="tn-sub"></small>
+          </article>
+        </div>
+      </div>
+    </div>
+    <div class="metrics-grid">
+      <article><span>Accuracy</span><strong id="m-acc">—</strong><small>(TP + TN) / total</small></article>
+      <article><span>Specificity</span><strong id="m-spec">—</strong><small>TN / (TN + FP)</small></article>
+      <article><span>Precision</span><strong id="m-prec">—</strong><small>TP / (TP + FP)</small></article>
+      <article><span>Recall</span><strong id="m-rec">—</strong><small>TP / (TP + FN)</small></article>
+    </div>
+  </section>
+
+  <!-- ── Calculation details ───────────────────────────── -->
+  <section class="panel" aria-label="Calculation details">
+    <div class="section-head">
+      <h2>Calculation details</h2>
+      <span class="muted">Updates as you change inputs</span>
+    </div>
+    <div class="formula-grid">
+      <article class="formula-card">
+        <h3>Combined review depth</h3>
+        <code id="calc-review-formula">—</code>
+        <p id="calc-review-count">—</p>
+      </article>
+      <article class="formula-card">
+        <h3>Unique fraud universe</h3>
+        <code id="calc-fraud-formula">—</code>
+        <p id="calc-fraud-count">—</p>
+      </article>
+      <article class="formula-card">
+        <h3>Fraud caught</h3>
+        <code id="calc-caught-formula">—</code>
+        <p id="calc-caught-count">—</p>
+      </article>
+      <article class="formula-card">
+        <h3>Final rates</h3>
+        <code id="calc-rate-formula">—</code>
+        <p id="calc-rate-count">—</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── Single-model reference ────────────────────────── -->
+  <section class="panel" aria-label="Single model comparison">
+    <h2>Single-model reference at selected depths</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Depth</th>
+            <th>Capture</th>
+            <th>Ref. precision</th>
+            <th>Lift</th>
+            <th>Flagged apps</th>
+            <th>Frauds caught by type</th>
+            <th>Fraud base volume</th>
+          </tr>
+        </thead>
+        <tbody id="single-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Workbook calibration checkpoints ──────────────── -->
+  <section class="panel" aria-label="Workbook calibration checkpoints">
+    <h2>Workbook calibration checkpoints</h2>
+    <p class="hint">All-three-model, same-depth rows from the combined lift chart sheet. These checkpoints use the per-model/type fraud-base method.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Depth per model</th>
+            <th>Unique cases reviewed</th>
+            <th>3PF capture</th>
+            <th>Synthetic capture</th>
+            <th>FPF capture</th>
+            <th>Total unique fraud caught</th>
+            <th>Combined capture</th>
+            <th>Review depth</th>
+            <th>Precision</th>
+          </tr>
+        </thead>
+        <tbody id="checkpoint-rows"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   Fraud Model Simulator v2
+   Additions: dark mode, add/remove models, export/import/copy,
+   mini lift charts, sticky bar, warning banner
+   ============================================================ */
+
+// ── Default config ──────────────────────────────────────────
+const DEFAULT_CONFIG = {
+  applicationVolume: 943500,
+  fraudBaseMode: "global",
+  fraudRatePerType: 0.02,
+  globalCaptureMode: "conservative",
+  customGlobalCapture: 0.7414,
+  pairwiseOverlap: 0.15,
+  reviewOverlapBasis: "min",
+  customCombinedDepth: 0.0765,
+  models: [
+    {
+      id: "three_pf",
+      label: "3PF",
+      sourceName: "Individual Models sheet — 3PF / prior Sigma table",
+      enabled: true,
+      autoMetrics: true,
+      selectedDepth: 0.03,
+      selectedCapture: 0.6228,
+      selectedPrecision: 0.4152,
+      points: [
+        { riskDepth: 0.01, cumulativeFraudCapture: 0.4138, precision: 0.8276, lift: 41.38 },
+        { riskDepth: 0.02, cumulativeFraudCapture: 0.5491, precision: 0.5491, lift: 27.455 },
+        { riskDepth: 0.03, cumulativeFraudCapture: 0.6228, precision: 0.4152, lift: 20.76 },
+        { riskDepth: 0.04, cumulativeFraudCapture: 0.6743, precision: 0.33715, lift: 16.8575 },
+        { riskDepth: 0.05, cumulativeFraudCapture: 0.7118, precision: 0.28472, lift: 14.236 },
+        { riskDepth: 0.06, cumulativeFraudCapture: 0.7358, precision: 0.24527, lift: 12.263 },
+        { riskDepth: 0.07, cumulativeFraudCapture: 0.7568, precision: 0.21623, lift: 10.811 },
+        { riskDepth: 0.08, cumulativeFraudCapture: 0.7739, precision: 0.193475, lift: 9.674 },
+        { riskDepth: 0.09, cumulativeFraudCapture: 0.7875, precision: 0.175, lift: 8.75 },
+        { riskDepth: 0.10, cumulativeFraudCapture: 0.7993, precision: 0.15986, lift: 7.993 }
+      ]
+    },
+    {
+      id: "synthetic_v41_final_norm_score",
+      label: "Synthetic",
+      sourceName: "Individual Models sheet — Synthetic",
+      enabled: true,
+      autoMetrics: true,
+      selectedDepth: 0.03,
+      selectedCapture: 0.7414,
+      selectedPrecision: 0.4943,
+      points: [
+        { riskDepth: 0.01, cumulativeFraudCapture: 0.5156, precision: 1.0000, lift: 51.56 },
+        { riskDepth: 0.02, cumulativeFraudCapture: 0.6646, precision: 0.6646, lift: 33.23 },
+        { riskDepth: 0.03, cumulativeFraudCapture: 0.7414, precision: 0.4943, lift: 24.713 },
+        { riskDepth: 0.04, cumulativeFraudCapture: 0.7909, precision: 0.39545, lift: 19.773 },
+        { riskDepth: 0.05, cumulativeFraudCapture: 0.8276, precision: 0.33104, lift: 16.552 },
+        { riskDepth: 0.06, cumulativeFraudCapture: 0.3488, precision: 0.11627, lift: 5.813 },
+        { riskDepth: 0.07, cumulativeFraudCapture: 0.86312, precision: 0.24661, lift: 12.330 },
+        { riskDepth: 0.08, cumulativeFraudCapture: 0.88088, precision: 0.22022, lift: 11.011 },
+        { riskDepth: 0.09, cumulativeFraudCapture: 0.89864, precision: 0.19970, lift: 9.985 },
+        { riskDepth: 0.10, cumulativeFraudCapture: 0.9164, precision: 0.18328, lift: 9.164 }
+      ]
+    },
+    {
+      id: "one_pf",
+      label: "FPF",
+      sourceName: "Individual Models sheet — FPF / 1PF",
+      enabled: true,
+      autoMetrics: true,
+      selectedDepth: 0.03,
+      selectedCapture: 0.1871,
+      selectedPrecision: 0.12473,
+      points: [
+        { riskDepth: 0.01, cumulativeFraudCapture: 0.0749, precision: 0.1498, lift: 7.49 },
+        { riskDepth: 0.02, cumulativeFraudCapture: 0.1372, precision: 0.1372, lift: 6.86 },
+        { riskDepth: 0.03, cumulativeFraudCapture: 0.1871, precision: 0.12473, lift: 6.237 },
+        { riskDepth: 0.04, cumulativeFraudCapture: 0.2354, precision: 0.1177, lift: 5.885 },
+        { riskDepth: 0.05, cumulativeFraudCapture: 0.2856, precision: 0.11424, lift: 5.712 },
+        { riskDepth: 0.06, cumulativeFraudCapture: 0.3309, precision: 0.1103, lift: 5.515 },
+        { riskDepth: 0.07, cumulativeFraudCapture: 0.3758, precision: 0.10737, lift: 5.369 },
+        { riskDepth: 0.08, cumulativeFraudCapture: 0.4199, precision: 0.104975, lift: 5.249 },
+        { riskDepth: 0.09, cumulativeFraudCapture: 0.4596, precision: 0.10213, lift: 5.107 },
+        { riskDepth: 0.10, cumulativeFraudCapture: 0.4955, precision: 0.0991, lift: 4.955 }
+      ]
+    }
+  ],
+  combinedCheckpoints: [
+    {
+      riskDepth: 0.01,
+      uniqueCasesReviewed: 25500,
+      syntheticCapture: 0.5156,
+      onePFCapture: 0.0749,
+      threePFCapture: 0.4138,
+      totalUniqueFraudCaught: 19237.09798,
+      combinedCapture: 0.3771979996078431,
+      reviewDepth: 0.0255,
+      precision: 0.7543959992156862
+    },
+    {
+      riskDepth: 0.03,
+      uniqueCasesReviewed: 76500,
+      syntheticCapture: 0.7414,
+      onePFCapture: 0.1871,
+      threePFCapture: 0.6228,
+      totalUniqueFraudCaught: 28875.04278,
+      combinedCapture: 0.5661773094117647,
+      reviewDepth: 0.0765,
+      precision: 0.3774515396078431
+    },
+    {
+      riskDepth: 0.05,
+      uniqueCasesReviewed: 127500,
+      syntheticCapture: 0.8276,
+      onePFCapture: 0.2856,
+      threePFCapture: 0.7118,
+      totalUniqueFraudCaught: 33413.78504,
+      combinedCapture: 0.6551722556862746,
+      reviewDepth: 0.1275,
+      precision: 0.2620689022745098
+    }
+  ]
+};
+
+// New model template (used when adding a custom model)
+const NEW_MODEL_TEMPLATE = {
+  label: "New model",
+  sourceName: "Custom — edit source name in JSON",
+  enabled: true,
+  autoMetrics: true,
+  selectedDepth: 0.03,
+  selectedCapture: 0.50,
+  selectedPrecision: 0.3333,
+  points: [
+    { riskDepth: 0.01, cumulativeFraudCapture: 0.30, precision: 0.60, lift: 30.0 },
+    { riskDepth: 0.02, cumulativeFraudCapture: 0.42, precision: 0.42, lift: 21.0 },
+    { riskDepth: 0.03, cumulativeFraudCapture: 0.50, precision: 0.3333, lift: 16.67 },
+    { riskDepth: 0.04, cumulativeFraudCapture: 0.57, precision: 0.2850, lift: 14.25 },
+    { riskDepth: 0.05, cumulativeFraudCapture: 0.63, precision: 0.2520, lift: 12.60 },
+    { riskDepth: 0.06, cumulativeFraudCapture: 0.67, precision: 0.2233, lift: 11.17 },
+    { riskDepth: 0.07, cumulativeFraudCapture: 0.71, precision: 0.2014, lift: 10.07 },
+    { riskDepth: 0.08, cumulativeFraudCapture: 0.74, precision: 0.1850, lift: 9.25 },
+    { riskDepth: 0.09, cumulativeFraudCapture: 0.77, precision: 0.1711, lift: 8.56 },
+    { riskDepth: 0.10, cumulativeFraudCapture: 0.79, precision: 0.1580, lift: 7.90 }
+  ]
+};
+
+let config = clone(DEFAULT_CONFIG);
+let modelIdCounter = 200; // Increment for new custom model IDs
+
+// ── Helpers ─────────────────────────────────────────────────
+function clone(obj) { return JSON.parse(JSON.stringify(obj)) }
+function $(id) { return document.getElementById(id) }
+function num(value, fallback) { const n = Number(value); return Number.isFinite(n) ? n : fallback }
+function clamp(value, min, max) { return Math.min(max, Math.max(min, value)) }
+function fmt(value) { return Number.isFinite(value) ? Math.round(value).toLocaleString() : "—" }
+function fmtDec(value, digits) {
+  return Number.isFinite(value)
+    ? Number(value).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits })
+    : "—"
+}
+function pct(value, digits = 1) { return Number.isFinite(value) ? (value * 100).toFixed(digits) + "%" : "—" }
+function pctInput(value, digits = 2) {
+  return (value * 100).toFixed(digits).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")
+}
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])
+  )
+}
+function nChoose2(n) { return n * (n - 1) / 2 }
+
+// ── Dark mode ────────────────────────────────────────────────
+let isDark = (function () {
+  try {
+    const stored = localStorage.getItem("viz-theme");
+    if (stored) return stored === "dark";
+  } catch (e) {}
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+})();
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  const sun = $("icon-sun"), moon = $("icon-moon");
+  if (sun) sun.style.display = isDark ? "" : "none";
+  if (moon) moon.style.display = isDark ? "none" : "";
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  try { localStorage.setItem("viz-theme", isDark ? "dark" : "light") } catch (e) {}
+  applyTheme();
+}
+
+// ── Warning banner ───────────────────────────────────────────
+let _bannerTimer = null;
+
+function showBanner(text, type = "warning", duration = 0) {
+  const el = $("warning-banner");
+  if (!el) return;
+  el.textContent = text;
+  el.className = "warning-banner" + (type === "info" ? " info" : "");
+  clearTimeout(_bannerTimer);
+  if (duration > 0) {
+    _bannerTimer = setTimeout(() => el.classList.add("hidden"), duration);
+  }
+}
+
+function hideBanner() {
+  const el = $("warning-banner");
+  if (el) el.classList.add("hidden");
+}
+
+// ── Scenario inputs ──────────────────────────────────────────
+function scenarioInputs() {
+  return {
+    applicationVolume: Math.max(1, Math.round(num($("application-volume").value, config.applicationVolume))),
+    fraudBaseMode: $("fraud-base-mode").value,
+    fraudRatePerType: clamp(num($("fraud-rate").value, config.fraudRatePerType * 100) / 100, 0, 1),
+    globalCaptureMode: $("global-capture-mode").value,
+    customGlobalCapture: clamp(num($("custom-global-capture").value, config.customGlobalCapture * 100) / 100, 0, 1),
+    pairwiseOverlap: clamp(num($("pairwise-overlap").value, config.pairwiseOverlap * 100) / 100, 0, 0.5),
+    reviewOverlapBasis: $("review-overlap-basis").value,
+    customCombinedDepth: clamp(num($("custom-depth").value, config.customCombinedDepth * 100) / 100, 0, 1)
+  }
+}
+
+function storeScenarioInputs() {
+  const s = scenarioInputs();
+  config.applicationVolume = s.applicationVolume;
+  config.fraudBaseMode = s.fraudBaseMode;
+  config.fraudRatePerType = s.fraudRatePerType;
+  config.globalCaptureMode = s.globalCaptureMode;
+  config.customGlobalCapture = s.customGlobalCapture;
+  config.pairwiseOverlap = s.pairwiseOverlap;
+  config.reviewOverlapBasis = s.reviewOverlapBasis;
+  config.customCombinedDepth = s.customCombinedDepth;
+}
+
+// ── Interpolation ────────────────────────────────────────────
+function interpolatePoint(points, depth) {
+  if (!points || !points.length) return { cumulativeFraudCapture: 0, precision: 0, lift: 0 }
+  const sorted = points.slice().sort((a, b) => a.riskDepth - b.riskDepth);
+  if (depth <= sorted[0].riskDepth) return clone(sorted[0]);
+  if (depth >= sorted[sorted.length - 1].riskDepth) return clone(sorted[sorted.length - 1]);
+  for (let i = 1; i < sorted.length; i++) {
+    const l = sorted[i - 1], r = sorted[i];
+    if (depth <= r.riskDepth) {
+      const w = (depth - l.riskDepth) / (r.riskDepth - l.riskDepth || 1);
+      return {
+        riskDepth: depth,
+        cumulativeFraudCapture: l.cumulativeFraudCapture + w * (r.cumulativeFraudCapture - l.cumulativeFraudCapture),
+        precision: l.precision + w * (r.precision - l.precision),
+        lift: l.lift + w * (r.lift - l.lift)
+      }
+    }
+  }
+  return clone(sorted[sorted.length - 1])
+}
+
+function closestPointIndex(points, depth) {
+  let best = 0, bestDist = Infinity;
+  points.forEach((p, i) => { const d = Math.abs(p.riskDepth - depth); if (d < bestDist) { best = i; bestDist = d } });
+  return best;
+}
+
+// ── Calculations ─────────────────────────────────────────────
+function selectedLift(model, scenario) {
+  const depth = clamp(num(model.selectedDepth, 0), 0, 1);
+  const capture = clamp(num(model.selectedCapture, 0), 0, 1);
+  const sp = Number.isFinite(Number(model.selectedPrecision)) ? clamp(Number(model.selectedPrecision), 0, 1) : null;
+  const formulaPrecision = depth > 0 ? clamp((scenario.fraudRatePerType * capture) / depth, 0, 1) : 0;
+  const precision = sp === null ? formulaPrecision : sp;
+  return {
+    depth, capture, precision,
+    lift: scenario.fraudRatePerType > 0 ? precision / scenario.fraudRatePerType : 0,
+    flagged: scenario.applicationVolume * depth,
+    typeFraudVolume: scenario.applicationVolume * scenario.fraudRatePerType,
+    typeFraudCaught: scenario.applicationVolume * scenario.fraudRatePerType * capture
+  }
+}
+
+function pairDepthBase(a, b, basis) {
+  if (basis === "average") return (a + b) / 2;
+  if (basis === "none") return 0;
+  return Math.min(a, b);
+}
+
+function computeCombined(models, scenario) {
+  const n = models.length;
+  if (!n) {
+    return {
+      totalUniqueFraudRate: 0, uniqueFraudCaughtRate: 0, combinedDepth: 0,
+      depthSum: 0, pairDepthSum: 0, reviewOverlapDeduction: 0,
+      pairwiseFraudRate: 0, exclusiveFraudRate: 0, exclusiveFraudCaughtRate: 0,
+      pairwiseFraudCaughtRate: 0, pairCount: 0, globalCombinedCapture: 0,
+      captureSum: 0, captureMax: 0, capturePairSum: 0, captureOverlapDeduction: 0,
+      warning: "No models are included."
+    }
+  }
+
+  const depths = models.map(m => clamp(num(m.selectedDepth, 0), 0, 1));
+  const captures = models.map(m => clamp(num(m.selectedCapture, 0), 0, 1));
+  const pairCount = nChoose2(n);
+  const depthSum = depths.reduce((s, d) => s + d, 0);
+
+  let pairDepthSum = 0;
+  for (let i = 0; i < n; i++)
+    for (let j = i + 1; j < n; j++)
+      pairDepthSum += pairDepthBase(depths[i], depths[j], scenario.reviewOverlapBasis);
+
+  const reviewOverlapDeduction = scenario.pairwiseOverlap * pairDepthSum;
+  const customReviewDepth = scenario.reviewOverlapBasis === "custom";
+  let combinedDepth = customReviewDepth
+    ? scenario.customCombinedDepth
+    : depthSum - reviewOverlapDeduction;
+  combinedDepth = clamp(combinedDepth, 0, 1);
+
+  let totalUniqueFraudRate = 0, uniqueFraudCaughtRate = 0,
+      pairwiseFraudRate = 0, exclusiveFraudRate = 0,
+      exclusiveFraudCaughtRate = 0, pairwiseFraudCaughtRate = 0,
+      globalCombinedCapture = 0;
+  const captureSum = captures.reduce((s, c) => s + c, 0);
+  const captureMax = captures.length ? Math.max(...captures) : 0;
+  let capturePairSum = 0, captureOverlapDeduction = 0, warning = "";
+
+  if (scenario.fraudBaseMode === "global") {
+    totalUniqueFraudRate = scenario.fraudRatePerType;
+
+    if (scenario.globalCaptureMode === "independent") {
+      globalCombinedCapture = 1 - captures.reduce((mp, c) => mp * (1 - c), 1);
+      globalCombinedCapture = Math.max(captureMax, globalCombinedCapture);
+    } else if (scenario.globalCaptureMode === "pairwise") {
+      const cb = scenario.reviewOverlapBasis === "average" ? "average" : scenario.reviewOverlapBasis === "none" ? "none" : "min";
+      for (let i = 0; i < n; i++)
+        for (let j = i + 1; j < n; j++)
+          capturePairSum += pairDepthBase(captures[i], captures[j], cb);
+      captureOverlapDeduction = scenario.pairwiseOverlap * capturePairSum;
+      globalCombinedCapture = Math.max(captureMax, captureSum - captureOverlapDeduction);
+    } else if (scenario.globalCaptureMode === "custom") {
+      globalCombinedCapture = scenario.customGlobalCapture;
+      if (globalCombinedCapture + 0.0000001 < captureMax)
+        warning += "Custom combined capture is below the best selected model; unusual for any-flag logic. ";
+    } else {
+      globalCombinedCapture = captureMax;
+    }
+
+    globalCombinedCapture = clamp(globalCombinedCapture, 0, 1);
+    uniqueFraudCaughtRate = totalUniqueFraudRate * globalCombinedCapture;
+  } else {
+    pairwiseFraudRate = scenario.fraudRatePerType * scenario.pairwiseOverlap;
+    exclusiveFraudRate = Math.max(0, scenario.fraudRatePerType * (1 - scenario.pairwiseOverlap * Math.max(0, n - 1)));
+    totalUniqueFraudRate = clamp(n * scenario.fraudRatePerType - pairCount * pairwiseFraudRate, 0, 1);
+    captures.forEach(c => { exclusiveFraudCaughtRate += exclusiveFraudRate * c });
+    for (let i = 0; i < n; i++)
+      for (let j = i + 1; j < n; j++)
+        pairwiseFraudCaughtRate += pairwiseFraudRate * (1 - (1 - captures[i]) * (1 - captures[j]));
+    uniqueFraudCaughtRate = clamp(exclusiveFraudCaughtRate + pairwiseFraudCaughtRate, 0, totalUniqueFraudRate);
+    globalCombinedCapture = totalUniqueFraudRate > 0 ? uniqueFraudCaughtRate / totalUniqueFraudRate : 0;
+  }
+
+  if (n > 1 && scenario.pairwiseOverlap * (n - 1) > 1 && scenario.fraudBaseMode === "perType")
+    warning += "Pairwise overlap is too high for the no-triple-overlap workbook method. ";
+
+  if (uniqueFraudCaughtRate > combinedDepth) {
+    uniqueFraudCaughtRate = combinedDepth;
+    globalCombinedCapture = totalUniqueFraudRate > 0 ? uniqueFraudCaughtRate / totalUniqueFraudRate : 0;
+    warning += "Fraud caught capped: review depth cannot contain more frauds than reviewed apps.";
+  }
+
+  return {
+    totalUniqueFraudRate, uniqueFraudCaughtRate, combinedDepth,
+    depthSum, pairDepthSum, reviewOverlapDeduction,
+    pairwiseFraudRate, exclusiveFraudRate, exclusiveFraudCaughtRate,
+    pairwiseFraudCaughtRate, pairCount, globalCombinedCapture,
+    captureSum, captureMax, capturePairSum, captureOverlapDeduction,
+    warning: warning.trim()
+  }
+}
+
+// ── Mini lift chart ──────────────────────────────────────────
+function renderMiniChart(model, containerEl) {
+  const points = (model.points || []).slice().sort((a, b) => a.riskDepth - b.riskDepth);
+  if (points.length < 2) { containerEl.innerHTML = ""; return }
+
+  const W = 300, H = 56;
+  const pad = { t: 4, r: 4, b: 4, l: 4 };
+  const w = W - pad.l - pad.r, h = H - pad.t - pad.b;
+
+  const maxDepth = points[points.length - 1].riskDepth || 0.1;
+  const maxCapture = Math.max(...points.map(p => p.cumulativeFraudCapture)) || 1;
+
+  const toX = d => pad.l + (d / maxDepth) * w;
+  const toY = c => pad.t + h - (c / maxCapture) * h;
+
+  const pathStr = points.map((p, i) => {
+    const x = toX(p.riskDepth).toFixed(1);
+    const y = toY(p.cumulativeFraudCapture).toFixed(1);
+    return (i === 0 ? "M" : "L") + x + " " + y;
+  }).join(" ");
+
+  const lastX = toX(points[points.length - 1].riskDepth).toFixed(1);
+  const baseY = (pad.t + h).toFixed(1);
+  const areaStr = pathStr + ` L${lastX} ${baseY} L${pad.l} ${baseY} Z`;
+
+  const selX = toX(clamp(model.selectedDepth, 0, maxDepth)).toFixed(1);
+  const blue = "#185fa5";
+
+  containerEl.innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">` +
+    `<path d="${areaStr}" fill="${blue}" fill-opacity=".1"/>` +
+    `<path d="${pathStr}" fill="none" stroke="${blue}" stroke-width="1.5" stroke-linejoin="round"/>` +
+    `<line x1="${selX}" y1="${pad.t}" x2="${selX}" y2="${baseY}" stroke="${blue}" stroke-width="1" stroke-dasharray="2 2" opacity=".7"/>` +
+    `</svg>`;
+}
+
+// ── Model management ─────────────────────────────────────────
+function addModel() {
+  modelIdCounter++;
+  const newModel = Object.assign(clone(NEW_MODEL_TEMPLATE), {
+    id: `custom_model_${modelIdCounter}`,
+    label: `Model ${config.models.length + 1}`
+  });
+  config.models.push(newModel);
+  renderModelCards();
+  update(false);
+  // Scroll new card into view
+  const cards = document.querySelectorAll(".model-card");
+  if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function removeModel(idx) {
+  if (config.models.length <= 1) {
+    showBanner("At least one model is required.", "warning", 3000);
+    return;
+  }
+  config.models.splice(idx, 1);
+  renderModelCards();
+  update(false);
+}
+
+// ── Model cards render ───────────────────────────────────────
+function renderModelCards() {
+  const container = $("model-cards");
+  container.innerHTML = "";
+
+  config.models.forEach((model, idx) => {
+    const closestIdx = closestPointIndex(model.points, model.selectedDepth);
+    const options = model.points.map((p, pi) => {
+      const sel = pi === closestIdx ? " selected" : "";
+      return `<option value="${pi}"${sel}>Top ${pctInput(p.riskDepth, 2)}% | ${pct(p.cumulativeFraudCapture, 1)} capture | ${pct(p.precision, 1)} precision</option>`;
+    }).join("");
+
+    const card = document.createElement("article");
+    card.className = "model-card" + (model.enabled ? "" : " excluded");
+
+    card.innerHTML = `
+      <div class="model-top">
+        <div class="model-name-wrap">
+          <label for="model-name-${idx}">Model name</label>
+          <input id="model-name-${idx}" type="text" value="${escapeHtml(model.label)}">
+        </div>
+        <div class="model-top-right">
+          <label class="include-toggle" title="Include this model in combined calculation">
+            <input id="enabled-${idx}" type="checkbox" ${model.enabled ? "checked" : ""}>
+            Include
+          </label>
+          <button class="icon-btn ghost danger" id="remove-${idx}" type="button" title="Remove model" aria-label="Remove ${escapeHtml(model.label)}">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <label for="preset-${idx}">Preset depth from table</label>
+      <select id="preset-${idx}">${options}</select>
+
+      <div class="model-fields">
+        <div>
+          <label for="depth-${idx}">Risk depth (%)</label>
+          <input id="depth-${idx}" type="number" min="0" max="100" step="0.1" value="${pctInput(model.selectedDepth, 2)}">
+        </div>
+        <div>
+          <label for="capture-${idx}">Fraud capture (%)</label>
+          <input id="capture-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedCapture, 2)}">
+        </div>
+        <div>
+          <label for="precision-${idx}">Ref. precision (%)</label>
+          <input id="precision-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedPrecision || 0, 2)}">
+        </div>
+      </div>
+
+      <label class="auto-row">
+        <input id="auto-${idx}" type="checkbox" ${model.autoMetrics ? "checked" : ""}>
+        Auto-fill capture and precision from lookup when depth changes.
+      </label>
+
+      <div class="mini-grid">
+        <div class="mini-stat">
+          <span>Flagged apps</span>
+          <strong id="mini-flagged-${idx}">—</strong>
+        </div>
+        <div class="mini-stat">
+          <span>Frauds caught</span>
+          <strong id="mini-caught-${idx}">—</strong>
+        </div>
+      </div>
+
+      <div class="mini-chart" id="mini-chart-${idx}"></div>
+      <div class="source-note">Source: ${escapeHtml(model.sourceName || model.id)}</div>
+    `;
+
+    container.appendChild(card);
+
+    // Wire up remove
+    $(`remove-${idx}`).addEventListener("click", () => removeModel(idx));
+
+    // Wire up model name
+    $(`model-name-${idx}`).addEventListener("input", e => {
+      model.label = e.target.value || `Model ${idx + 1}`;
+      update(false);
+    });
+
+    // Wire up enabled
+    $(`enabled-${idx}`).addEventListener("change", e => {
+      model.enabled = e.target.checked;
+      card.classList.toggle("excluded", !model.enabled);
+      update(false);
+    });
+
+    // Wire up preset
+    $(`preset-${idx}`).addEventListener("change", e => {
+      const p = model.points[Number(e.target.value)];
+      if (!p) return;
+      model.selectedDepth = p.riskDepth;
+      model.selectedCapture = p.cumulativeFraudCapture;
+      model.selectedPrecision = p.precision;
+      model.autoMetrics = true;
+      $(`depth-${idx}`).value = pctInput(model.selectedDepth, 2);
+      $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
+      $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
+      $(`auto-${idx}`).checked = true;
+      renderMiniChart(model, $(`mini-chart-${idx}`));
+      update(false);
+    });
+
+    // Wire up depth
+    $(`depth-${idx}`).addEventListener("input", e => {
+      model.selectedDepth = clamp(num(e.target.value, pctInput(model.selectedDepth, 2)) / 100, 0, 1);
+      if (model.autoMetrics) {
+        const p = interpolatePoint(model.points, model.selectedDepth);
+        model.selectedCapture = p.cumulativeFraudCapture;
+        model.selectedPrecision = p.precision;
+        $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
+        $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
+      }
+      renderMiniChart(model, $(`mini-chart-${idx}`));
+      update(false);
+    });
+
+    // Wire up capture
+    $(`capture-${idx}`).addEventListener("input", e => {
+      model.selectedCapture = clamp(num(e.target.value, pctInput(model.selectedCapture, 2)) / 100, 0, 1);
+      model.autoMetrics = false;
+      $(`auto-${idx}`).checked = false;
+      update(false);
+    });
+
+    // Wire up precision
+    $(`precision-${idx}`).addEventListener("input", e => {
+      model.selectedPrecision = clamp(num(e.target.value, pctInput(model.selectedPrecision || 0, 2)) / 100, 0, 1);
+      model.autoMetrics = false;
+      $(`auto-${idx}`).checked = false;
+      update(false);
+    });
+
+    // Wire up auto
+    $(`auto-${idx}`).addEventListener("change", e => {
+      model.autoMetrics = e.target.checked;
+      if (model.autoMetrics) {
+        const p = interpolatePoint(model.points, model.selectedDepth);
+        model.selectedCapture = p.cumulativeFraudCapture;
+        model.selectedPrecision = p.precision;
+        $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
+        $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
+      }
+      update(false);
+    });
+
+    // Render mini chart
+    renderMiniChart(model, $(`mini-chart-${idx}`));
+  });
+}
+
+// ── Single-model table ───────────────────────────────────────
+function renderSingleRows(scenario) {
+  $("single-rows").innerHTML = config.models.map(model => {
+    const s = selectedLift(model, scenario);
+    const exc = model.enabled ? "" : ` <span style="color:var(--text-3)">(excluded)</span>`;
+    return `<tr>
+      <td>${escapeHtml(model.label)}${exc}</td>
+      <td>${pct(s.depth, 1)}</td>
+      <td>${pct(s.capture, 1)}</td>
+      <td>${pct(s.precision, 1)}</td>
+      <td>${fmtDec(s.lift, 1)}×</td>
+      <td>${fmt(s.flagged)}</td>
+      <td>${fmt(s.typeFraudCaught)}</td>
+      <td>${fmt(s.typeFraudVolume)}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ── Checkpoint table ─────────────────────────────────────────
+function renderCheckpointRows() {
+  $("checkpoint-rows").innerHTML = config.combinedCheckpoints.map(row => `
+    <tr>
+      <td>${pct(row.riskDepth, 1)}</td>
+      <td>${fmt(row.uniqueCasesReviewed)} per 1M</td>
+      <td>${pct(row.threePFCapture, 1)}</td>
+      <td>${pct(row.syntheticCapture, 1)}</td>
+      <td>${pct(row.onePFCapture, 1)}</td>
+      <td>${fmtDec(row.totalUniqueFraudCaught, 1)} per 1M</td>
+      <td>${pct(row.combinedCapture, 1)}</td>
+      <td>${pct(row.reviewDepth, 2)}</td>
+      <td>${pct(row.precision, 1)}</td>
+    </tr>
+  `).join("");
+}
+
+// ── Calculation details ──────────────────────────────────────
+function renderCalcDetails(enabledModels, scenario, combined, values) {
+  const n = enabledModels.length;
+  const total = scenario.applicationVolume;
+  const depthList = enabledModels.map(m => pct(clamp(num(m.selectedDepth, 0), 0, 1), 2));
+  const captureList = enabledModels.map(m => pct(clamp(num(m.selectedCapture, 0), 0, 1), 1));
+
+  if (!n) {
+    $("calc-review-formula").textContent = "No included models = 0.00% review depth";
+    $("calc-review-count").textContent = `${fmt(total)} × 0.00% = 0 reviewed applicants`;
+    $("calc-fraud-formula").textContent = "No included models = 0.00% fraud base";
+    $("calc-fraud-count").textContent = `0.00% × ${fmt(total)} = 0 actual fraud cases`;
+    $("calc-caught-formula").textContent = "No included models = 0 caught";
+    $("calc-caught-count").textContent = "Recall: 0 / 0 = 0.0%";
+    $("calc-rate-formula").textContent = "Precision: 0 / 0 = 0.0%";
+    $("calc-rate-count").textContent = "No applicants are reviewed.";
+    return;
+  }
+
+  let reviewFormula;
+  if (scenario.reviewOverlapBasis === "custom") {
+    reviewFormula = `Custom review depth = ${pct(values.combinedDepth, 2)}`;
+  } else if (n === 1 || scenario.reviewOverlapBasis === "none") {
+    reviewFormula = `${depthList.join(" + ")} = ${pct(values.combinedDepth, 2)}`;
+  } else {
+    reviewFormula = `${depthList.join(" + ")} − (${pct(scenario.pairwiseOverlap, 1)} × ${pct(combined.pairDepthSum, 2)}) = ${pct(values.combinedDepth, 2)}`;
+  }
+
+  let fraudFormula, caughtFormula, caughtCount;
+
+  if (scenario.fraudBaseMode === "global") {
+    fraudFormula = `Global population fraud = ${pct(scenario.fraudRatePerType, 2)}`;
+    if (scenario.globalCaptureMode === "independent") {
+      caughtFormula = `Independent OR: 1 − miss rates across [${captureList.join(", ")}] = ${pct(combined.globalCombinedCapture, 1)}`;
+    } else if (scenario.globalCaptureMode === "pairwise") {
+      caughtFormula = `Pairwise capture: ${pct(combined.captureSum, 1)} − (${pct(scenario.pairwiseOverlap, 1)} × ${pct(combined.capturePairSum, 1)}) = ${pct(combined.globalCombinedCapture, 1)}`;
+    } else if (scenario.globalCaptureMode === "custom") {
+      caughtFormula = `Custom combined capture = ${pct(combined.globalCombinedCapture, 1)}`;
+    } else {
+      caughtFormula = `Best selected model capture = max(${captureList.join(", ")}) = ${pct(combined.globalCombinedCapture, 1)}`;
+    }
+    caughtCount = `${pct(combined.globalCombinedCapture, 1)} × ${fmt(values.totalUniqueFraud)} actual fraud = ${fmt(values.TP)} caught`;
+  } else {
+    if (n === 1) {
+      fraudFormula = `1 type × ${pct(scenario.fraudRatePerType, 2)} = ${pct(combined.totalUniqueFraudRate, 2)}`;
+    } else {
+      fraudFormula = `${n} types × ${pct(scenario.fraudRatePerType, 2)} − ${combined.pairCount} pairs × ${pct(combined.pairwiseFraudRate, 2)} = ${pct(combined.totalUniqueFraudRate, 2)}`;
+    }
+    const caughtExc = Math.round(total * combined.exclusiveFraudCaughtRate);
+    const caughtOvlp = Math.round(total * combined.pairwiseFraudCaughtRate);
+    const rawCaught = Math.round(total * Math.min(combined.totalUniqueFraudRate, combined.exclusiveFraudCaughtRate + combined.pairwiseFraudCaughtRate));
+    caughtFormula = rawCaught === values.TP
+      ? `${fmt(caughtExc)} exclusive + ${fmt(caughtOvlp)} pair-overlap = ${fmt(values.TP)} caught`
+      : `${fmt(caughtExc)} exclusive + ${fmt(caughtOvlp)} pair-overlap = ${fmt(rawCaught)} raw, capped to ${fmt(values.TP)}`;
+    caughtCount = `Recall: ${fmt(values.TP)} / ${fmt(values.totalUniqueFraud)} = ${pct(values.recall, 1)}`;
+  }
+
+  $("calc-review-formula").textContent = reviewFormula;
+  $("calc-review-count").textContent = `${pct(values.combinedDepth, 2)} × ${fmt(total)} = ${fmt(values.flagged)} reviewed applicants`;
+  $("calc-fraud-formula").textContent = fraudFormula;
+  $("calc-fraud-count").textContent = `${pct(combined.totalUniqueFraudRate, 2)} × ${fmt(total)} = ${fmt(values.totalUniqueFraud)} ${scenario.fraudBaseMode === "global" ? "actual fraud cases" : "unique fraud"}`;
+  $("calc-caught-formula").textContent = caughtFormula;
+  $("calc-caught-count").textContent = caughtCount;
+  $("calc-rate-formula").textContent = `Precision: ${fmt(values.TP)} / ${fmt(values.flagged)} = ${pct(values.precision, 1)}`;
+  $("calc-rate-count").textContent = `False positives: ${fmt(values.flagged)} reviewed − ${fmt(values.TP)} fraud caught = ${fmt(values.FP)}`;
+}
+
+// ── Main update ──────────────────────────────────────────────
+function update(syncJson = true) {
+  storeScenarioInputs();
+  const scenario = scenarioInputs();
+  const enabledModels = config.models.filter(m => m.enabled);
+  const combined = computeCombined(enabledModels, scenario);
+  const total = scenario.applicationVolume;
+
+  const totalUniqueFraud = Math.round(total * combined.totalUniqueFraudRate);
+  const TP = Math.min(totalUniqueFraud, Math.round(total * combined.uniqueFraudCaughtRate));
+  const flagged = Math.max(TP, Math.round(total * combined.combinedDepth));
+  const FP = Math.max(0, flagged - TP);
+  const FN = Math.max(0, totalUniqueFraud - TP);
+  const totalGood = Math.max(0, total - totalUniqueFraud);
+  const TN = Math.max(0, totalGood - FP);
+  const precision = flagged > 0 ? TP / flagged : 0;
+  const recall = totalUniqueFraud > 0 ? TP / totalUniqueFraud : 0;
+  const specificity = (TN + FP) > 0 ? TN / (TN + FP) : 0;
+  const accuracy = total > 0 ? (TP + TN) / total : 0;
+  const combinedDepth = total > 0 ? flagged / total : 0;
+
+  // Conditional show/hide
+  $("custom-depth-wrap").classList.toggle("hidden", scenario.reviewOverlapBasis !== "custom");
+  $("global-capture-mode-wrap").classList.toggle("hidden", scenario.fraudBaseMode !== "global");
+  $("custom-capture-wrap").classList.toggle("hidden", scenario.fraudBaseMode !== "global" || scenario.globalCaptureMode !== "custom");
+
+  // Status pill + labels
+  $("status-pill").textContent = scenario.fraudBaseMode === "global" ? "Global fraud base" : "Workbook method";
+  $("fraud-rate-label").textContent = scenario.fraudBaseMode === "global" ? "Global fraud rate (%)" : "Fraud rate per type (%)";
+  $("fraud-rate-help").textContent = scenario.fraudBaseMode === "global"
+    ? "Total actual fraud across the full population."
+    : "Workbook-style base rate for each selected fraud/model type.";
+  $("s-fraud-title").textContent = scenario.fraudBaseMode === "global" ? "Actual fraud cases" : "Unique fraud universe";
+
+  // Summary cards
+  $("s-depth").textContent = pct(combinedDepth, 2);
+  $("s-flagged").textContent = fmt(flagged);
+  $("s-fraud-universe").textContent = fmt(totalUniqueFraud);
+  $("s-capture").textContent = pct(recall, 1);
+  $("s-precision").textContent = pct(precision, 1);
+  $("s-fraud-universe-sub").textContent = scenario.fraudBaseMode === "global"
+    ? "Global fraud rate × application volume"
+    : `${enabledModels.length} selected fraud type${enabledModels.length === 1 ? "" : "s"}, after overlap`;
+  $("s-capture-sub").textContent = scenario.fraudBaseMode === "global" ? "TP / actual fraud cases" : "TP / unique fraud";
+
+  // Sticky bar
+  $("bar-depth").textContent = pct(combinedDepth, 2);
+  $("bar-flagged").textContent = fmt(flagged);
+  $("bar-fraud").textContent = fmt(totalUniqueFraud);
+  $("bar-capture").textContent = pct(recall, 1);
+  $("bar-precision").textContent = pct(precision, 1);
+
+  // Confusion matrix
+  $("tp-val").textContent = fmt(TP);
+  $("tp-sub").textContent = `${pct(recall, 1)} of unique fraud caught`;
+  $("fn-val").textContent = fmt(FN);
+  $("fn-sub").textContent = `${pct(1 - recall, 1)} of unique fraud missed`;
+  $("fp-val").textContent = fmt(FP);
+  $("fp-sub").textContent = `${pct(totalGood > 0 ? FP / totalGood : 0, 2)} of legit flagged`;
+  $("tn-val").textContent = fmt(TN);
+  $("tn-sub").textContent = `${pct(totalGood > 0 ? TN / totalGood : 0, 1)} of legit passed`;
+  $("m-acc").textContent = pct(accuracy, 1);
+  $("m-spec").textContent = pct(specificity, 1);
+  $("m-prec").textContent = pct(precision, 1);
+  $("m-rec").textContent = pct(recall, 1);
+
+  // Per-model mini stats
+  config.models.forEach((model, idx) => {
+    const s = selectedLift(model, scenario);
+    const fEl = $(`mini-flagged-${idx}`), cEl = $(`mini-caught-${idx}`);
+    if (fEl) fEl.textContent = fmt(s.flagged);
+    if (cEl) cEl.textContent = fmt(s.typeFraudCaught);
+  });
+
+  // Warning banner
+  if (combined.warning) {
+    showBanner("⚠ " + combined.warning, "warning");
+  } else {
+    hideBanner();
+  }
+
+  // Calc details
+  renderCalcDetails(enabledModels, scenario, combined, {
+    totalUniqueFraud, combinedDepth, flagged, TP, FP, FN, TN, precision, recall
+  });
+
+  renderSingleRows(scenario);
+
+  if (syncJson) syncConfigJson();
+}
+
+// ── JSON operations ──────────────────────────────────────────
+function syncConfigJson() {
+  storeScenarioInputs();
+  $("config-json").value = JSON.stringify(config, null, 2);
+}
+
+function applyConfigJson() {
+  let parsed;
+  try { parsed = JSON.parse($("config-json").value) }
+  catch (e) { showBanner("JSON parse error: " + e.message, "warning", 5000); return }
+  if (!parsed || !Array.isArray(parsed.models)) {
+    showBanner("Config must include a models array.", "warning", 5000);
+    return;
+  }
+
+  config = Object.assign(clone(DEFAULT_CONFIG), parsed);
+  config.models = parsed.models.map((m, idx) => {
+    const fallback = DEFAULT_CONFIG.models[idx] || DEFAULT_CONFIG.models[0];
+    const merged = Object.assign(clone(fallback), m);
+    merged.points = Array.isArray(m.points)
+      ? m.points.map(p => ({
+          riskDepth: clamp(num(p.riskDepth, 0), 0, 1),
+          cumulativeFraudCapture: clamp(num(p.cumulativeFraudCapture, 0), 0, 1),
+          precision: clamp(num(p.precision, 0), 0, 1),
+          lift: num(p.lift, 0)
+        })).sort((a, b) => a.riskDepth - b.riskDepth)
+      : clone(fallback.points);
+    merged.selectedDepth = clamp(num(merged.selectedDepth, merged.points[0] ? merged.points[0].riskDepth : 0), 0, 1);
+    const pt = interpolatePoint(merged.points, merged.selectedDepth);
+    merged.selectedCapture = clamp(num(merged.selectedCapture, pt.cumulativeFraudCapture), 0, 1);
+    merged.selectedPrecision = clamp(num(merged.selectedPrecision, pt.precision), 0, 1);
+    return merged;
+  });
+  config.combinedCheckpoints = Array.isArray(parsed.combinedCheckpoints)
+    ? parsed.combinedCheckpoints
+    : clone(DEFAULT_CONFIG.combinedCheckpoints);
+
+  restoreFormInputs();
+  renderModelCards();
+  renderCheckpointRows();
+  update(true);
+  showBanner("Config applied.", "info", 2000);
+}
+
+function resetDefaults() {
+  config = clone(DEFAULT_CONFIG);
+  restoreFormInputs();
+  renderModelCards();
+  renderCheckpointRows();
+  update(true);
+}
+
+function restoreFormInputs() {
+  $("application-volume").value = config.applicationVolume;
+  $("fraud-base-mode").value = config.fraudBaseMode || "global";
+  $("fraud-rate").value = pctInput(config.fraudRatePerType, 2);
+  $("global-capture-mode").value = config.globalCaptureMode || "conservative";
+  $("custom-global-capture").value = pctInput(config.customGlobalCapture || 0, 2);
+  $("pairwise-overlap").value = pctInput(config.pairwiseOverlap, 1);
+  $("review-overlap-basis").value = config.reviewOverlapBasis || "min";
+  $("custom-depth").value = pctInput(config.customCombinedDepth || 0, 2);
+}
+
+// ── Export / Import / Copy ────────────────────────────────────
+function exportConfig() {
+  syncConfigJson();
+  const json = $("config-json").value;
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fraud-model-config.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showBanner("Config exported.", "info", 2000);
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    $("config-json").value = e.target.result;
+    $("config-details").setAttribute("open", "");
+    applyConfigJson();
+  };
+  reader.onerror = () => showBanner("Could not read file.", "warning", 3000);
+  reader.readAsText(file);
+  // Reset input so re-selecting same file fires change again
+  event.target.value = "";
+}
+
+async function copyConfig() {
+  syncConfigJson();
+  const json = $("config-json").value;
+  try {
+    await navigator.clipboard.writeText(json);
+    showBanner("JSON copied to clipboard.", "info", 2000);
+  } catch (e) {
+    // Fallback: open details and select the textarea
+    $("config-details").setAttribute("open", "");
+    $("config-json").focus();
+    $("config-json").select();
+    showBanner("Clipboard access blocked — text selected in the editor below.", "info", 4000);
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────
+function init() {
+  // Apply saved theme
+  applyTheme();
+
+  // Scenario control listeners
+  [
+    "application-volume", "fraud-base-mode", "fraud-rate",
+    "global-capture-mode", "custom-global-capture",
+    "pairwise-overlap", "review-overlap-basis", "custom-depth"
+  ].forEach(id => {
+    $(id).addEventListener("input", () => update(false));
+    $(id).addEventListener("change", () => update(false));
+  });
+
+  // Button listeners
+  $("sync-config").addEventListener("click", syncConfigJson);
+  $("apply-config").addEventListener("click", applyConfigJson);
+  $("reset-defaults").addEventListener("click", resetDefaults);
+  $("add-model").addEventListener("click", addModel);
+  $("theme-toggle").addEventListener("click", toggleTheme);
+  $("export-config").addEventListener("click", exportConfig);
+  $("copy-config").addEventListener("click", copyConfig);
+
+  $("import-config-btn").addEventListener("click", () => {
+    $("import-file-input").click();
+  });
+  $("import-file-input").addEventListener("change", handleImportFile);
+
+  // Initial render
+  renderModelCards();
+  renderCheckpointRows();
+  update(true);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+
+</script>
+</body>
+</html>
