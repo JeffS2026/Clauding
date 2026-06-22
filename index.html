@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Risk depth × application volume simulator</title>
+  <title>Socure — Applicant Fraud Outcomes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -155,7 +155,66 @@ button, input, select, textarea { font: inherit }
 h1 { margin: 0 0 10px; font-size: 27px; font-weight: 700; line-height: 1.1; letter-spacing: -.03em }
 h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em }
 h3 { margin: 0 0 10px; font-size: 10px; font-weight: 700; color: var(--text-3); letter-spacing: .09em; text-transform: uppercase }
-.hero p { max-width: 680px; margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.65 }
+.hero p { max-width: 720px; margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.65 }
+
+/* === Explainer === */
+.explainer {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 14px;
+}
+.explainer-card {
+  padding: 14px 16px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  box-shadow: var(--shadow-xs); transition: background var(--t-slow);
+}
+.explainer-card strong { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; letter-spacing: -.01em }
+.explainer-card p { margin: 0; color: var(--text-2); font-size: 12px; line-height: 1.5 }
+.explainer-card.tp strong { color: var(--blue) }
+.explainer-card.fn strong { color: var(--pink) }
+.explainer-card.fp strong { color: var(--amber) }
+.explainer-card.tn strong { color: var(--green) }
+
+/* === Comparison === */
+.comparison-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; margin-bottom: 14px }
+.comparison-card {
+  padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); box-shadow: var(--shadow-xs); transition: background var(--t-slow);
+}
+.comparison-card.highlight { border-color: rgba(24,95,165,.28); background: var(--blue-50) }
+.comparison-card h3 { margin: 0 0 12px; font-size: 13px; font-weight: 600; letter-spacing: -.01em; text-transform: none; color: var(--text) }
+.comparison-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.comparison-metric span { display: block; color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px }
+.comparison-metric strong { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+.comparison-delta {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 4px; min-width: 88px; text-align: center;
+}
+.comparison-delta span { color: var(--text-3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em }
+.comparison-delta strong { font-size: 15px; font-weight: 700; color: var(--green) }
+.comparison-delta strong.negative { color: var(--pink) }
+
+/* === Advanced collapse === */
+.advanced-details { margin-bottom: 14px }
+.advanced-details > summary {
+  cursor: pointer; list-style: none; padding: 14px 20px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 14px; font-weight: 600; color: var(--text-2);
+  box-shadow: var(--shadow-xs); transition: background var(--t-slow);
+}
+.advanced-details > summary::-webkit-details-marker { display: none }
+.advanced-details > summary::after { content: '+'; float: right; color: var(--text-3); font-weight: 400 }
+.advanced-details[open] > summary { border-radius: var(--radius) var(--radius) 0 0; border-bottom: none }
+.advanced-details[open] > summary::after { content: '−' }
+.advanced-details > .advanced-body {
+  padding: 0 20px 20px; background: var(--surface);
+  border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.advanced-details > .advanced-body > .panel { margin-bottom: 14px }
+.advanced-details > .advanced-body > .panel:last-child { margin-bottom: 0 }
+
+.section-intro { margin: 0 0 16px; color: var(--text-2); font-size: 13px; line-height: 1.6; max-width: 720px }
+.matrix-intro { margin: 0 0 18px; color: var(--text-2); font-size: 13px; line-height: 1.6; max-width: 720px }
 
 /* === Panels === */
 .panel {
@@ -342,6 +401,9 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
   .controls-grid { grid-template-columns: repeat(2, minmax(150px,1fr)) }
   .model-grid { grid-template-columns: 1fr 1fr }
   .summary-grid { grid-template-columns: repeat(3,1fr) }
+  .explainer { grid-template-columns: repeat(2, 1fr) }
+  .comparison-grid { grid-template-columns: 1fr }
+  .comparison-delta { flex-direction: row; justify-content: flex-start; padding: 12px 0 0; min-width: 0 }
   .formula-grid, .metrics-grid { grid-template-columns: repeat(2,1fr) }
   .bar-metric:nth-child(n+8) { display: none }
 }
@@ -352,7 +414,7 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
 @media (max-width: 600px) {
   .viz-wrap { padding: 18px 14px 40px }
   .sticky-bar { padding: 0 14px }
-  .controls-grid, .summary-grid, .formula-grid, .metrics-grid, .model-fields, .mini-grid { grid-template-columns: 1fr }
+  .controls-grid, .summary-grid, .formula-grid, .metrics-grid, .model-fields, .mini-grid, .explainer, .comparison-metrics { grid-template-columns: 1fr }
   .section-head, .model-section-head { align-items: flex-start; flex-direction: column }
   .summary-card strong, .cell strong { font-size: 22px }
   .matrix-row { grid-template-columns: 1fr }
@@ -363,38 +425,38 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
   </style>
 </head>
 <body>
-<h2 class="sr-only">Interactive combined model lift chart visualization using risk depth and application volume.</h2>
+<h2 class="sr-only">Socure applicant fraud outcomes — interactive confusion matrix</h2>
 
 <!-- Sticky metrics bar -->
 <div class="sticky-bar">
   <div class="bar-metrics">
     <div class="bar-metric">
-      <span class="bar-metric-label">Depth</span>
+      <span class="bar-metric-label">Review rate</span>
       <span class="bar-metric-value" id="bar-depth">—</span>
     </div>
     <div class="bar-sep"></div>
     <div class="bar-metric">
-      <span class="bar-metric-label">Flagged</span>
+      <span class="bar-metric-label">Sent to review</span>
       <span class="bar-metric-value" id="bar-flagged">—</span>
     </div>
     <div class="bar-sep"></div>
     <div class="bar-metric">
-      <span class="bar-metric-label">Fraud cases</span>
+      <span class="bar-metric-label">Fraud in population</span>
       <span class="bar-metric-value" id="bar-fraud">—</span>
     </div>
     <div class="bar-sep"></div>
     <div class="bar-metric">
-      <span class="bar-metric-label">Capture</span>
+      <span class="bar-metric-label">Fraud caught</span>
       <span class="bar-metric-value" id="bar-capture">—</span>
     </div>
     <div class="bar-sep"></div>
     <div class="bar-metric">
-      <span class="bar-metric-label">Precision</span>
+      <span class="bar-metric-label">Review precision</span>
       <span class="bar-metric-value" id="bar-precision">—</span>
     </div>
   </div>
   <div class="bar-right">
-    <span id="status-pill" class="pill">Global fraud base</span>
+    <span id="status-pill" class="pill">Population fraud rate</span>
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
       <svg id="icon-sun" viewBox="0 0 24 24" style="display:none">
         <circle cx="12" cy="12" r="4"/>
@@ -409,199 +471,75 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
 
 <div class="viz-wrap">
   <header class="hero">
-    <p class="eyebrow">Configurable combined model output</p>
-    <h1>Risk depth × application volume simulator</h1>
+    <p class="eyebrow">Socure fraud detection</p>
+    <h1>Applicant outcomes at a glance</h1>
     <p>
-      Combined review depth estimates unique applicants reviewed after model overlap is deduped.
-      Adjust model depths, fraud rates, and overlap parameters to simulate combined performance across any configuration of models.
+      This dashboard shows where applicants land when Socure models flag risk: fraud correctly caught,
+      fraud missed, legitimate applicants sent to review, and legitimate applicants auto-approved.
+      Adjust volume, fraud rate, and model settings below to explore a scenario.
     </p>
   </header>
 
-  <!-- ── Scenario controls ─────────────────────────────── -->
-  <section class="panel" aria-label="Scenario controls">
+  <!-- ── Confusion matrix (primary view) ───────────────── -->
+  <section class="panel matrix-panel" aria-label="Applicant confusion matrix">
     <div class="section-head">
-      <h2>Scenario controls</h2>
+      <h2>Applicant confusion matrix</h2>
+    </div>
+    <p class="matrix-intro">
+      Each applicant falls into one of four buckets. <strong>Rows</strong> are who they actually are;
+      <strong>columns</strong> are what Socure decided. The goal: maximize fraud caught (top-left)
+      while keeping false alarms (bottom-left) manageable.
+    </p>
+
+    <div class="explainer" aria-label="Matrix legend">
+      <article class="explainer-card tp">
+        <strong>Fraud caught</strong>
+        <p>Actual fraud flagged for review — the outcome you want.</p>
+      </article>
+      <article class="explainer-card fn">
+        <strong>Fraud missed</strong>
+        <p>Actual fraud that passed through undetected.</p>
+      </article>
+      <article class="explainer-card fp">
+        <strong>False alarm</strong>
+        <p>Legitimate applicant incorrectly sent to review.</p>
+      </article>
+      <article class="explainer-card tn">
+        <strong>Correctly approved</strong>
+        <p>Legitimate applicant not flagged — friction-free onboarding.</p>
+      </article>
     </div>
 
-    <div class="controls-grid">
-      <div>
-        <label for="application-volume">Application volume</label>
-        <input id="application-volume" type="number" min="1" step="1000" value="943500">
-        <small>Total applications in the scenario.</small>
-      </div>
-
-      <div>
-        <label id="fraud-rate-label" for="fraud-rate">Fraud rate (%)</label>
-        <input id="fraud-rate" type="number" min="0" max="100" step="0.01" value="2.00">
-        <small id="fraud-rate-help">Default: 2.00% total fraud across the population.</small>
-      </div>
-
-      <div>
-        <label for="fraud-base-mode">Fraud base mode</label>
-        <select id="fraud-base-mode">
-          <option value="global" selected>Global population fraud</option>
-          <option value="perType">Per-model / type fraud base</option>
-        </select>
-        <small id="fraud-mode-help">Global mode keeps the fraud universe fixed when models are added.</small>
-      </div>
-
-      <div id="global-capture-mode-wrap">
-        <label for="global-capture-mode">Global capture estimate</label>
-        <select id="global-capture-mode">
-          <option value="conservative" selected>Best selected model</option>
-          <option value="independent">Independent OR estimate</option>
-          <option value="pairwise">Pairwise dedupe estimate</option>
-          <option value="custom">Custom combined capture</option>
-        </select>
-        <small>Used only when fraud base mode is global.</small>
-      </div>
-
-      <div id="custom-capture-wrap" class="hidden">
-        <label for="custom-global-capture">Custom combined fraud capture (%)</label>
-        <input id="custom-global-capture" type="number" min="0" max="100" step="0.1" value="74.14">
-        <small>Use measured combined recall when available.</small>
-      </div>
-
-      <div>
-        <label for="pairwise-overlap">Pairwise overlap (%)</label>
-        <input id="pairwise-overlap" type="number" min="0" max="50" step="0.1" value="15.0">
-        <small>Workbook default: 15.0%.</small>
-      </div>
-
-      <div>
-        <label for="review-overlap-basis">Mixed-depth review overlap</label>
-        <select id="review-overlap-basis">
-          <option value="min">Use smaller depth for each pair</option>
-          <option value="average">Use average depth for each pair</option>
-          <option value="none">No review overlap</option>
-          <option value="custom">Custom combined review depth</option>
-        </select>
-        <small>Equal-depth checkpoints match the workbook under min or average.</small>
-      </div>
-
-      <div id="custom-depth-wrap" class="hidden">
-        <label for="custom-depth">Custom combined review depth (%)</label>
-        <input id="custom-depth" type="number" min="0" max="100" step="0.1" value="7.65">
-        <small>Use measured unique reviewed applications when available.</small>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Model inputs ──────────────────────────────────── -->
-  <section class="panel" aria-label="Model inputs">
-    <div class="model-section-head">
-      <h2>Model inputs</h2>
-      <button id="add-model" type="button">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add model
-      </button>
-    </div>
-
-    <div id="model-cards" class="model-grid"></div>
-
-    <div class="button-row">
-      <button id="sync-config" type="button">
-        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.01-8.49"/></svg>
-        Refresh JSON
-      </button>
-      <button id="apply-config" type="button" class="primary">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Apply JSON
-      </button>
-      <button id="reset-defaults" type="button">
-        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
-        Reset defaults
-      </button>
-      <div class="flex-spacer"></div>
-      <button id="export-config" type="button">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export JSON
-      </button>
-      <button id="import-config-btn" type="button">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Import JSON
-      </button>
-      <input id="import-file-input" type="file" accept=".json,application/json" style="display:none" aria-hidden="true">
-      <button id="copy-config" type="button">
-        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy JSON
-      </button>
-    </div>
-
-    <details class="config-details" id="config-details">
-      <summary>Advanced: edit full config JSON</summary>
-      <textarea id="config-json" spellcheck="false"></textarea>
-      <small>Edit labels, lookup points, defaults, and workbook checkpoints. Click Apply JSON after editing.</small>
-    </details>
-  </section>
-
-  <!-- ── Warning banner (hidden by default) ────────────── -->
-  <div id="warning-banner" class="warning-banner hidden" role="alert"></div>
-
-  <!-- ── Summary cards ─────────────────────────────────── -->
-  <section class="summary-grid" aria-label="Combined scenario summary">
-    <article class="summary-card">
-      <span>Combined review depth</span>
-      <strong id="s-depth">—</strong>
-      <small id="s-depth-sub">Deduped applicant review rate</small>
-    </article>
-    <article class="summary-card">
-      <span>Flagged applications</span>
-      <strong id="s-flagged">—</strong>
-      <small id="s-flagged-sub">Unique applicants sent to review</small>
-    </article>
-    <article class="summary-card">
-      <span id="s-fraud-title">Actual fraud cases</span>
-      <strong id="s-fraud-universe">—</strong>
-      <small id="s-fraud-universe-sub">Across selected fraud types</small>
-    </article>
-    <article class="summary-card">
-      <span>Fraud capture</span>
-      <strong id="s-capture">—</strong>
-      <small id="s-capture-sub">TP / unique fraud</small>
-    </article>
-    <article class="summary-card">
-      <span>Precision</span>
-      <strong id="s-precision">—</strong>
-      <small id="s-precision-sub">TP / reviewed applicants</small>
-    </article>
-  </section>
-
-  <!-- ── Confusion matrix ──────────────────────────────── -->
-  <section class="panel matrix-panel" aria-label="Confusion matrix">
-    <div class="section-head">
-      <h2>Confusion matrix</h2>
-    </div>
     <div class="matrix-shell">
-      <div class="axis-y">Observed</div>
+      <div class="axis-y">Who they are</div>
       <div class="matrix-right">
-        <div class="axis-x">Predicted</div>
+        <div class="axis-x">What Socure decided</div>
         <div class="x-labels">
-          <span>Fraud / flagged</span>
-          <span>Legit / passed</span>
+          <span>Sent to review</span>
+          <span>Auto-approved</span>
         </div>
         <div class="matrix-row">
-          <div class="row-label">Actual fraud</div>
+          <div class="row-label">Fraudulent</div>
           <article class="cell tp">
-            <span>True positive</span>
+            <span>Fraud caught</span>
             <strong id="tp-val">—</strong>
             <small id="tp-sub"></small>
           </article>
           <article class="cell fn">
-            <span>False negative</span>
+            <span>Fraud missed</span>
             <strong id="fn-val">—</strong>
             <small id="fn-sub"></small>
           </article>
         </div>
         <div class="matrix-row">
-          <div class="row-label">Actual legit</div>
+          <div class="row-label">Legitimate</div>
           <article class="cell fp">
-            <span>False positive</span>
+            <span>False alarm</span>
             <strong id="fp-val">—</strong>
             <small id="fp-sub"></small>
           </article>
           <article class="cell tn">
-            <span>True negative</span>
+            <span>Correctly approved</span>
             <strong id="tn-val">—</strong>
             <small id="tn-sub"></small>
           </article>
@@ -609,88 +547,275 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
       </div>
     </div>
     <div class="metrics-grid">
-      <article><span>Accuracy</span><strong id="m-acc">—</strong><small>(TP + TN) / total</small></article>
-      <article><span>Specificity</span><strong id="m-spec">—</strong><small>TN / (TN + FP)</small></article>
-      <article><span>Precision</span><strong id="m-prec">—</strong><small>TP / (TP + FP)</small></article>
-      <article><span>Recall</span><strong id="m-rec">—</strong><small>TP / (TP + FN)</small></article>
+      <article><span>Recall (fraud caught)</span><strong id="m-rec">—</strong><small>Fraud caught ÷ all fraud</small></article>
+      <article><span>Review precision</span><strong id="m-prec">—</strong><small>Fraud caught ÷ sent to review</small></article>
+      <article><span>False alarm rate</span><strong id="m-far">—</strong><small>False alarms ÷ all legitimate</small></article>
+      <article><span>Auto-approval rate</span><strong id="m-auto">—</strong><small>Correctly approved ÷ all legitimate</small></article>
     </div>
   </section>
 
-  <!-- ── Calculation details ───────────────────────────── -->
-  <section class="panel" aria-label="Calculation details">
+  <!-- ── Outcome summary ───────────────────────────────── -->
+  <section class="summary-grid" aria-label="Scenario summary">
+    <article class="summary-card">
+      <span>Applicants sent to review</span>
+      <strong id="s-flagged">—</strong>
+      <small id="s-flagged-sub">Unique applicants flagged by Socure</small>
+    </article>
+    <article class="summary-card">
+      <span id="s-fraud-title">Fraud in population</span>
+      <strong id="s-fraud-universe">—</strong>
+      <small id="s-fraud-universe-sub">Expected fraud cases in this volume</small>
+    </article>
+    <article class="summary-card">
+      <span>Fraud caught</span>
+      <strong id="s-capture">—</strong>
+      <small id="s-capture-sub">Share of fraud sent to review</small>
+    </article>
+    <article class="summary-card">
+      <span>Review precision</span>
+      <strong id="s-precision">—</strong>
+      <small id="s-precision-sub">Fraud caught ÷ applicants reviewed</small>
+    </article>
+    <article class="summary-card">
+      <span>Review rate</span>
+      <strong id="s-depth">—</strong>
+      <small id="s-depth-sub">Share of applicants flagged</small>
+    </article>
+  </section>
+
+  <!-- ── Socure lift comparison ────────────────────────── -->
+  <section class="comparison-grid" aria-label="Single model vs combined Socure">
+    <article class="comparison-card" id="compare-single">
+      <h3 id="compare-single-title">Best single model alone</h3>
+      <div class="comparison-metrics">
+        <div class="comparison-metric"><span>Fraud caught</span><strong id="cmp-single-recall">—</strong></div>
+        <div class="comparison-metric"><span>Review precision</span><strong id="cmp-single-precision">—</strong></div>
+        <div class="comparison-metric"><span>Fraud cases caught</span><strong id="cmp-single-tp">—</strong></div>
+        <div class="comparison-metric"><span>Sent to review</span><strong id="cmp-single-flagged">—</strong></div>
+      </div>
+    </article>
+    <div class="comparison-delta" aria-label="Improvement">
+      <span>Lift</span>
+      <strong id="cmp-delta-recall">—</strong>
+      <span id="cmp-delta-label">more fraud caught</span>
+    </div>
+    <article class="comparison-card highlight" id="compare-combined">
+      <h3>Combined Socure models</h3>
+      <div class="comparison-metrics">
+        <div class="comparison-metric"><span>Fraud caught</span><strong id="cmp-combined-recall">—</strong></div>
+        <div class="comparison-metric"><span>Review precision</span><strong id="cmp-combined-precision">—</strong></div>
+        <div class="comparison-metric"><span>Fraud cases caught</span><strong id="cmp-combined-tp">—</strong></div>
+        <div class="comparison-metric"><span>Sent to review</span><strong id="cmp-combined-flagged">—</strong></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ── Scenario controls ─────────────────────────────── -->
+  <section class="panel" aria-label="Scenario controls">
     <div class="section-head">
-      <h2>Calculation details</h2>
-      <span class="muted">Updates as you change inputs</span>
+      <h2>Scenario setup</h2>
     </div>
-    <div class="formula-grid">
-      <article class="formula-card">
-        <h3>Combined review depth</h3>
-        <code id="calc-review-formula">—</code>
-        <p id="calc-review-count">—</p>
-      </article>
-      <article class="formula-card">
-        <h3>Unique fraud universe</h3>
-        <code id="calc-fraud-formula">—</code>
-        <p id="calc-fraud-count">—</p>
-      </article>
-      <article class="formula-card">
-        <h3>Fraud caught</h3>
-        <code id="calc-caught-formula">—</code>
-        <p id="calc-caught-count">—</p>
-      </article>
-      <article class="formula-card">
-        <h3>Final rates</h3>
-        <code id="calc-rate-formula">—</code>
-        <p id="calc-rate-count">—</p>
-      </article>
+    <p class="section-intro">Set the applicant population and fraud assumptions. Most conversations start with application volume and fraud rate, then tune model depth.</p>
+
+    <div class="controls-grid">
+      <div>
+        <label for="application-volume">Application volume</label>
+        <input id="application-volume" type="number" min="1" step="1000" value="943500">
+        <small>Total applicants in this scenario.</small>
+      </div>
+
+      <div>
+        <label id="fraud-rate-label" for="fraud-rate">Fraud rate (%)</label>
+        <input id="fraud-rate" type="number" min="0" max="100" step="0.01" value="2.00">
+        <small id="fraud-rate-help">Default: 2.00% of applicants are fraudulent.</small>
+      </div>
+
+      <div>
+        <label for="pairwise-overlap">Model overlap (%)</label>
+        <input id="pairwise-overlap" type="number" min="0" max="50" step="0.1" value="15.0">
+        <small>How much two models flag the same applicants. Default: 15%.</small>
+      </div>
+
+      <div>
+        <label for="review-overlap-basis">Review overlap method</label>
+        <select id="review-overlap-basis">
+          <option value="min">Use smaller review rate per pair</option>
+          <option value="average">Use average review rate per pair</option>
+          <option value="none">No review overlap</option>
+          <option value="custom">Custom combined review rate</option>
+        </select>
+        <small>How overlapping flags are deduplicated across models.</small>
+      </div>
+
+      <div id="custom-depth-wrap" class="hidden">
+        <label for="custom-depth">Custom combined review rate (%)</label>
+        <input id="custom-depth" type="number" min="0" max="100" step="0.1" value="7.65">
+        <small>Measured unique review rate when available.</small>
+      </div>
     </div>
+
+    <details class="config-details" style="margin-top:16px">
+      <summary>Advanced scenario options</summary>
+      <div class="controls-grid" style="margin-top:12px">
+        <div>
+          <label for="fraud-base-mode">Fraud counting method</label>
+          <select id="fraud-base-mode">
+            <option value="global" selected>Single fraud rate for population</option>
+            <option value="perType">Per fraud type (workbook method)</option>
+          </select>
+          <small id="fraud-mode-help">Population mode is simpler for customer conversations.</small>
+        </div>
+
+        <div id="global-capture-mode-wrap">
+          <label for="global-capture-mode">Combined fraud catch estimate</label>
+          <select id="global-capture-mode">
+            <option value="conservative" selected>Best single model</option>
+            <option value="independent">Independent OR estimate</option>
+            <option value="pairwise">Pairwise dedupe estimate</option>
+            <option value="custom">Custom combined capture</option>
+          </select>
+          <small>Used when fraud counting = population mode.</small>
+        </div>
+
+        <div id="custom-capture-wrap" class="hidden">
+          <label for="custom-global-capture">Custom combined fraud catch (%)</label>
+          <input id="custom-global-capture" type="number" min="0" max="100" step="0.1" value="74.14">
+          <small>Use measured combined recall when available.</small>
+        </div>
+      </div>
+    </details>
   </section>
 
-  <!-- ── Single-model reference ────────────────────────── -->
-  <section class="panel" aria-label="Single model comparison">
-    <h2>Single-model reference at selected depths</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Depth</th>
-            <th>Capture</th>
-            <th>Ref. precision</th>
-            <th>Lift</th>
-            <th>Flagged apps</th>
-            <th>Frauds caught by type</th>
-            <th>Fraud base volume</th>
-          </tr>
-        </thead>
-        <tbody id="single-rows"></tbody>
-      </table>
+  <!-- ── Model configuration ───────────────────────────── -->
+  <section class="panel" aria-label="Model configuration">
+    <div class="model-section-head">
+      <h2>Socure model settings</h2>
+      <button id="add-model" type="button">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add model
+      </button>
     </div>
+    <p class="section-intro">Each model has a review rate (top % flagged) and expected fraud catch at that rate. Include or exclude models to see combined vs. single-model performance above.</p>
+
+    <div id="model-cards" class="model-grid"></div>
+
+    <details class="config-details" id="config-details" style="margin-top:16px">
+      <summary>Import / export configuration</summary>
+      <div class="button-row">
+        <button id="sync-config" type="button">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.01-8.49"/></svg>
+          Refresh JSON
+        </button>
+        <button id="apply-config" type="button" class="primary">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Apply JSON
+        </button>
+        <button id="reset-defaults" type="button">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+          Reset defaults
+        </button>
+        <div class="flex-spacer"></div>
+        <button id="export-config" type="button">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export JSON
+        </button>
+        <button id="import-config-btn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import JSON
+        </button>
+        <input id="import-file-input" type="file" accept=".json,application/json" style="display:none" aria-hidden="true">
+        <button id="copy-config" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy JSON
+        </button>
+      </div>
+      <textarea id="config-json" spellcheck="false"></textarea>
+      <small>Edit model lookup tables, labels, and workbook checkpoints. Click Apply JSON after editing.</small>
+    </details>
   </section>
 
-  <!-- ── Workbook calibration checkpoints ──────────────── -->
-  <section class="panel" aria-label="Workbook calibration checkpoints">
-    <h2>Workbook calibration checkpoints</h2>
-    <p class="hint">All-three-model, same-depth rows from the combined lift chart sheet. These checkpoints use the per-model/type fraud-base method.</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Depth per model</th>
-            <th>Unique cases reviewed</th>
-            <th>3PF capture</th>
-            <th>Synthetic capture</th>
-            <th>FPF capture</th>
-            <th>Total unique fraud caught</th>
-            <th>Combined capture</th>
-            <th>Review depth</th>
-            <th>Precision</th>
-          </tr>
-        </thead>
-        <tbody id="checkpoint-rows"></tbody>
-      </table>
+  <!-- ── Warning banner (hidden by default) ────────────── -->
+  <div id="warning-banner" class="warning-banner hidden" role="alert"></div>
+
+  <!-- ── Advanced reference (collapsed) ────────────────── -->
+  <details class="advanced-details">
+    <summary>Calculation details &amp; reference tables</summary>
+    <div class="advanced-body">
+      <section class="panel" aria-label="Calculation details">
+        <div class="section-head">
+          <h2>How the numbers are calculated</h2>
+          <span class="muted">Updates as you change inputs</span>
+        </div>
+        <div class="formula-grid">
+          <article class="formula-card">
+            <h3>Combined review rate</h3>
+            <code id="calc-review-formula">—</code>
+            <p id="calc-review-count">—</p>
+          </article>
+          <article class="formula-card">
+            <h3>Fraud in population</h3>
+            <code id="calc-fraud-formula">—</code>
+            <p id="calc-fraud-count">—</p>
+          </article>
+          <article class="formula-card">
+            <h3>Fraud caught</h3>
+            <code id="calc-caught-formula">—</code>
+            <p id="calc-caught-count">—</p>
+          </article>
+          <article class="formula-card">
+            <h3>Review precision</h3>
+            <code id="calc-rate-formula">—</code>
+            <p id="calc-rate-count">—</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Single model comparison">
+        <h2>Per-model breakdown</h2>
+        <p class="hint">Each Socure model at its selected review rate, before combining.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Review rate</th>
+                <th>Fraud caught</th>
+                <th>Review precision</th>
+                <th>Lift</th>
+                <th>Sent to review</th>
+                <th>Fraud cases caught</th>
+                <th>Fraud base</th>
+              </tr>
+            </thead>
+            <tbody id="single-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Workbook calibration checkpoints">
+        <h2>Workbook calibration checkpoints</h2>
+        <p class="hint">Reference rows from the combined lift chart — all three models at the same review rate, using the per-type fraud counting method.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Review rate per model</th>
+                <th>Unique cases reviewed</th>
+                <th>3PF capture</th>
+                <th>Synthetic capture</th>
+                <th>FPF capture</th>
+                <th>Total unique fraud caught</th>
+                <th>Combined capture</th>
+                <th>Combined review rate</th>
+                <th>Precision</th>
+              </tr>
+            </thead>
+            <tbody id="checkpoint-rows"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-  </section>
+  </details>
 </div>
 
 <script>
@@ -1071,7 +1196,92 @@ function computeCombined(models, scenario) {
   }
 }
 
-// ── Mini lift chart ──────────────────────────────────────────
+// ── Outcome values (confusion matrix) ────────────────────────
+function computeOutcomeValues(models, scenario) {
+  const combined = computeCombined(models, scenario);
+  const total = scenario.applicationVolume;
+  const totalUniqueFraud = Math.round(total * combined.totalUniqueFraudRate);
+  const TP = Math.min(totalUniqueFraud, Math.round(total * combined.uniqueFraudCaughtRate));
+  const flagged = Math.max(TP, Math.round(total * combined.combinedDepth));
+  const FP = Math.max(0, flagged - TP);
+  const FN = Math.max(0, totalUniqueFraud - TP);
+  const totalGood = Math.max(0, total - totalUniqueFraud);
+  const TN = Math.max(0, totalGood - FP);
+  const precision = flagged > 0 ? TP / flagged : 0;
+  const recall = totalUniqueFraud > 0 ? TP / totalUniqueFraud : 0;
+  const specificity = (TN + FP) > 0 ? TN / (TN + FP) : 0;
+  const accuracy = total > 0 ? (TP + TN) / total : 0;
+  const combinedDepth = total > 0 ? flagged / total : 0;
+  return {
+    combined, total, totalUniqueFraud, TP, flagged, FP, FN, TN, totalGood,
+    precision, recall, specificity, accuracy, combinedDepth
+  };
+}
+
+function computeBestSingle(enabledModels, scenario) {
+  if (!enabledModels.length) return null;
+  let best = null;
+  enabledModels.forEach(model => {
+    const outcome = computeOutcomeValues([model], scenario);
+    if (!best || outcome.recall > best.recall || (outcome.recall === best.recall && outcome.TP > best.TP))
+      best = Object.assign({ model }, outcome);
+  });
+  return best;
+}
+
+function renderComparison(enabledModels, scenario, combinedOutcome) {
+  const best = computeBestSingle(enabledModels, scenario);
+  const set = (id, text) => { const el = $(id); if (el) el.textContent = text };
+
+  if (!best || !enabledModels.length) {
+    set("compare-single-title", "Best single model alone");
+    set("cmp-single-recall", "—");
+    set("cmp-single-precision", "—");
+    set("cmp-single-tp", "—");
+    set("cmp-single-flagged", "—");
+    set("cmp-combined-recall", "—");
+    set("cmp-combined-precision", "—");
+    set("cmp-combined-tp", "—");
+    set("cmp-combined-flagged", "—");
+    set("cmp-delta-recall", "—");
+    set("cmp-delta-label", "Include a model to compare");
+    return;
+  }
+
+  set("compare-single-title", `${best.model.label} alone`);
+  set("cmp-single-recall", pct(best.recall, 1));
+  set("cmp-single-precision", pct(best.precision, 1));
+  set("cmp-single-tp", fmt(best.TP));
+  set("cmp-single-flagged", fmt(best.flagged));
+  set("cmp-combined-recall", pct(combinedOutcome.recall, 1));
+  set("cmp-combined-precision", pct(combinedOutcome.precision, 1));
+  set("cmp-combined-tp", fmt(combinedOutcome.TP));
+  set("cmp-combined-flagged", fmt(combinedOutcome.flagged));
+
+  const recallDelta = combinedOutcome.recall - best.recall;
+  const tpDelta = combinedOutcome.TP - best.TP;
+  const deltaEl = $("cmp-delta-recall");
+  if (deltaEl) {
+    if (tpDelta > 0) {
+      deltaEl.textContent = "+" + fmt(tpDelta);
+      deltaEl.className = "";
+      set("cmp-delta-label", `more fraud caught (+${pct(recallDelta, 1)} recall)`);
+    } else if (tpDelta === 0 && combinedOutcome.flagged > best.flagged) {
+      deltaEl.textContent = "+" + fmt(combinedOutcome.flagged - best.flagged);
+      deltaEl.className = "";
+      set("cmp-delta-label", "more sent to review, same fraud caught");
+    } else if (tpDelta === 0) {
+      deltaEl.textContent = "Same";
+      deltaEl.className = "";
+      set("cmp-delta-label", "fraud caught at this setting");
+    } else {
+      deltaEl.textContent = fmt(tpDelta);
+      deltaEl.className = "negative";
+      set("cmp-delta-label", "fewer fraud cases caught");
+    }
+  }
+}
+
 function renderMiniChart(model, containerEl) {
   const points = (model.points || []).slice().sort((a, b) => a.riskDepth - b.riskDepth);
   if (points.length < 2) { containerEl.innerHTML = ""; return }
@@ -1164,36 +1374,36 @@ function renderModelCards() {
         </div>
       </div>
 
-      <label for="preset-${idx}">Preset depth from table</label>
+      <label for="preset-${idx}">Preset from lookup table</label>
       <select id="preset-${idx}">${options}</select>
 
       <div class="model-fields">
         <div>
-          <label for="depth-${idx}">Risk depth (%)</label>
+          <label for="depth-${idx}">Review rate (%)</label>
           <input id="depth-${idx}" type="number" min="0" max="100" step="0.1" value="${pctInput(model.selectedDepth, 2)}">
         </div>
         <div>
-          <label for="capture-${idx}">Fraud capture (%)</label>
+          <label for="capture-${idx}">Fraud caught (%)</label>
           <input id="capture-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedCapture, 2)}">
         </div>
         <div>
-          <label for="precision-${idx}">Ref. precision (%)</label>
+          <label for="precision-${idx}">Review precision (%)</label>
           <input id="precision-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedPrecision || 0, 2)}">
         </div>
       </div>
 
       <label class="auto-row">
         <input id="auto-${idx}" type="checkbox" ${model.autoMetrics ? "checked" : ""}>
-        Auto-fill capture and precision from lookup when depth changes.
+        Auto-fill from lookup table when review rate changes.
       </label>
 
       <div class="mini-grid">
         <div class="mini-stat">
-          <span>Flagged apps</span>
+          <span>Sent to review</span>
           <strong id="mini-flagged-${idx}">—</strong>
         </div>
         <div class="mini-stat">
-          <span>Frauds caught</span>
+          <span>Fraud cases caught</span>
           <strong id="mini-caught-${idx}">—</strong>
         </div>
       </div>
@@ -1340,17 +1550,17 @@ function renderCalcDetails(enabledModels, scenario, combined, values) {
 
   let reviewFormula;
   if (scenario.reviewOverlapBasis === "custom") {
-    reviewFormula = `Custom review depth = ${pct(values.combinedDepth, 2)}`;
+    reviewFormula = `Custom review rate = ${pct(values.combinedDepth, 2)}`;
   } else if (n === 1 || scenario.reviewOverlapBasis === "none") {
-    reviewFormula = `${depthList.join(" + ")} = ${pct(values.combinedDepth, 2)}`;
+    reviewFormula = `${depthList.join(" + ")} = ${pct(values.combinedDepth, 2)} review rate`;
   } else {
-    reviewFormula = `${depthList.join(" + ")} − (${pct(scenario.pairwiseOverlap, 1)} × ${pct(combined.pairDepthSum, 2)}) = ${pct(values.combinedDepth, 2)}`;
+    reviewFormula = `${depthList.join(" + ")} − (${pct(scenario.pairwiseOverlap, 1)} × overlap) = ${pct(values.combinedDepth, 2)} review rate`;
   }
 
   let fraudFormula, caughtFormula, caughtCount;
 
   if (scenario.fraudBaseMode === "global") {
-    fraudFormula = `Global population fraud = ${pct(scenario.fraudRatePerType, 2)}`;
+    fraudFormula = `Population fraud rate = ${pct(scenario.fraudRatePerType, 2)}`;
     if (scenario.globalCaptureMode === "independent") {
       caughtFormula = `Independent OR: 1 − miss rates across [${captureList.join(", ")}] = ${pct(combined.globalCombinedCapture, 1)}`;
     } else if (scenario.globalCaptureMode === "pairwise") {
@@ -1377,13 +1587,13 @@ function renderCalcDetails(enabledModels, scenario, combined, values) {
   }
 
   $("calc-review-formula").textContent = reviewFormula;
-  $("calc-review-count").textContent = `${pct(values.combinedDepth, 2)} × ${fmt(total)} = ${fmt(values.flagged)} reviewed applicants`;
+  $("calc-review-count").textContent = `${pct(values.combinedDepth, 2)} × ${fmt(total)} applicants = ${fmt(values.flagged)} sent to review`;
   $("calc-fraud-formula").textContent = fraudFormula;
-  $("calc-fraud-count").textContent = `${pct(combined.totalUniqueFraudRate, 2)} × ${fmt(total)} = ${fmt(values.totalUniqueFraud)} ${scenario.fraudBaseMode === "global" ? "actual fraud cases" : "unique fraud"}`;
+  $("calc-fraud-count").textContent = `${pct(combined.totalUniqueFraudRate, 2)} × ${fmt(total)} = ${fmt(values.totalUniqueFraud)} fraudulent applicants`;
   $("calc-caught-formula").textContent = caughtFormula;
   $("calc-caught-count").textContent = caughtCount;
-  $("calc-rate-formula").textContent = `Precision: ${fmt(values.TP)} / ${fmt(values.flagged)} = ${pct(values.precision, 1)}`;
-  $("calc-rate-count").textContent = `False positives: ${fmt(values.flagged)} reviewed − ${fmt(values.TP)} fraud caught = ${fmt(values.FP)}`;
+  $("calc-rate-formula").textContent = `Review precision: ${fmt(values.TP)} ÷ ${fmt(values.flagged)} = ${pct(values.precision, 1)}`;
+  $("calc-rate-count").textContent = `False alarms: ${fmt(values.flagged)} reviewed − ${fmt(values.TP)} fraud = ${fmt(values.FP)} legitimate applicants`;
 }
 
 // ── Main update ──────────────────────────────────────────────
@@ -1391,21 +1601,8 @@ function update(syncJson = true) {
   storeScenarioInputs();
   const scenario = scenarioInputs();
   const enabledModels = config.models.filter(m => m.enabled);
-  const combined = computeCombined(enabledModels, scenario);
-  const total = scenario.applicationVolume;
-
-  const totalUniqueFraud = Math.round(total * combined.totalUniqueFraudRate);
-  const TP = Math.min(totalUniqueFraud, Math.round(total * combined.uniqueFraudCaughtRate));
-  const flagged = Math.max(TP, Math.round(total * combined.combinedDepth));
-  const FP = Math.max(0, flagged - TP);
-  const FN = Math.max(0, totalUniqueFraud - TP);
-  const totalGood = Math.max(0, total - totalUniqueFraud);
-  const TN = Math.max(0, totalGood - FP);
-  const precision = flagged > 0 ? TP / flagged : 0;
-  const recall = totalUniqueFraud > 0 ? TP / totalUniqueFraud : 0;
-  const specificity = (TN + FP) > 0 ? TN / (TN + FP) : 0;
-  const accuracy = total > 0 ? (TP + TN) / total : 0;
-  const combinedDepth = total > 0 ? flagged / total : 0;
+  const v = computeOutcomeValues(enabledModels, scenario);
+  const { combined, total, totalUniqueFraud, TP, flagged, FP, FN, TN, totalGood, precision, recall, combinedDepth } = v;
 
   // Conditional show/hide
   $("custom-depth-wrap").classList.toggle("hidden", scenario.reviewOverlapBasis !== "custom");
@@ -1413,12 +1610,19 @@ function update(syncJson = true) {
   $("custom-capture-wrap").classList.toggle("hidden", scenario.fraudBaseMode !== "global" || scenario.globalCaptureMode !== "custom");
 
   // Status pill + labels
-  $("status-pill").textContent = scenario.fraudBaseMode === "global" ? "Global fraud base" : "Workbook method";
-  $("fraud-rate-label").textContent = scenario.fraudBaseMode === "global" ? "Global fraud rate (%)" : "Fraud rate per type (%)";
+  $("status-pill").textContent = scenario.fraudBaseMode === "global" ? "Population fraud rate" : "Per-type method";
+  $("fraud-rate-label").textContent = scenario.fraudBaseMode === "global" ? "Fraud rate (%)" : "Fraud rate per type (%)";
   $("fraud-rate-help").textContent = scenario.fraudBaseMode === "global"
-    ? "Total actual fraud across the full population."
-    : "Workbook-style base rate for each selected fraud/model type.";
-  $("s-fraud-title").textContent = scenario.fraudBaseMode === "global" ? "Actual fraud cases" : "Unique fraud universe";
+    ? "Share of applicants expected to be fraudulent."
+    : "Workbook-style base rate for each fraud type.";
+  $("s-fraud-title").textContent = scenario.fraudBaseMode === "global" ? "Fraud in population" : "Unique fraud universe";
+  $("s-flagged-sub").textContent = "Unique applicants flagged by Socure";
+  $("s-fraud-universe-sub").textContent = scenario.fraudBaseMode === "global"
+    ? "Fraud rate × application volume"
+    : `${enabledModels.length} fraud type${enabledModels.length === 1 ? "" : "s"}, after overlap`;
+  $("s-capture-sub").textContent = "Share of fraud sent to review";
+  $("s-precision-sub").textContent = "Fraud caught ÷ applicants reviewed";
+  $("s-depth-sub").textContent = "Share of applicants flagged";
 
   // Summary cards
   $("s-depth").textContent = pct(combinedDepth, 2);
@@ -1426,10 +1630,6 @@ function update(syncJson = true) {
   $("s-fraud-universe").textContent = fmt(totalUniqueFraud);
   $("s-capture").textContent = pct(recall, 1);
   $("s-precision").textContent = pct(precision, 1);
-  $("s-fraud-universe-sub").textContent = scenario.fraudBaseMode === "global"
-    ? "Global fraud rate × application volume"
-    : `${enabledModels.length} selected fraud type${enabledModels.length === 1 ? "" : "s"}, after overlap`;
-  $("s-capture-sub").textContent = scenario.fraudBaseMode === "global" ? "TP / actual fraud cases" : "TP / unique fraud";
 
   // Sticky bar
   $("bar-depth").textContent = pct(combinedDepth, 2);
@@ -1440,17 +1640,20 @@ function update(syncJson = true) {
 
   // Confusion matrix
   $("tp-val").textContent = fmt(TP);
-  $("tp-sub").textContent = `${pct(recall, 1)} of unique fraud caught`;
+  $("tp-sub").textContent = `${pct(recall, 1)} of all fraud`;
   $("fn-val").textContent = fmt(FN);
-  $("fn-sub").textContent = `${pct(1 - recall, 1)} of unique fraud missed`;
+  $("fn-sub").textContent = `${pct(1 - recall, 1)} of all fraud missed`;
   $("fp-val").textContent = fmt(FP);
-  $("fp-sub").textContent = `${pct(totalGood > 0 ? FP / totalGood : 0, 2)} of legit flagged`;
+  $("fp-sub").textContent = `${pct(totalGood > 0 ? FP / totalGood : 0, 2)} of legitimate applicants`;
   $("tn-val").textContent = fmt(TN);
-  $("tn-sub").textContent = `${pct(totalGood > 0 ? TN / totalGood : 0, 1)} of legit passed`;
-  $("m-acc").textContent = pct(accuracy, 1);
-  $("m-spec").textContent = pct(specificity, 1);
-  $("m-prec").textContent = pct(precision, 1);
+  $("tn-sub").textContent = `${pct(totalGood > 0 ? TN / totalGood : 0, 1)} of legitimate applicants`;
   $("m-rec").textContent = pct(recall, 1);
+  $("m-prec").textContent = pct(precision, 1);
+  $("m-far").textContent = pct(totalGood > 0 ? FP / totalGood : 0, 2);
+  $("m-auto").textContent = pct(totalGood > 0 ? TN / totalGood : 0, 1);
+
+  // Comparison
+  renderComparison(enabledModels, scenario, v);
 
   // Per-model mini stats
   config.models.forEach((model, idx) => {
