@@ -377,6 +377,16 @@ button.icon-btn { width: 32px; height: 32px; padding: 0; justify-content: center
 
 /* === Model grid & cards === */
 .model-section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px }
+.model-group { margin-bottom: 24px }
+.model-group:last-child { margin-bottom: 0 }
+.model-group-label {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
 .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px }
 .model-card {
   padding: 20px;
@@ -387,7 +397,21 @@ button.icon-btn { width: 32px; height: 32px; padding: 0; justify-content: center
   transition: border-color var(--t), box-shadow var(--t), opacity var(--t-slow), transform var(--t), background var(--t-slow);
 }
 .model-card:hover { box-shadow: var(--shadow-sm) }
-.model-card.excluded { opacity: .5 }
+.model-card.excluded { opacity: .72; border-style: dashed }
+.model-card .catalog-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
 .model-card:focus-within { border-color: rgba(0, 71, 187, 0.25); box-shadow: 0 0 0 4px rgba(0, 71, 187, 0.08) }
 .model-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px }
 .model-name-wrap { flex: 1; min-width: 0 }
@@ -843,9 +867,9 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
         Add model
       </button>
     </div>
-    <p class="section-intro">Enable models and pick governance tiers. Fraud caught % in step 3 syncs from included models when enabled.</p>
+    <p class="section-intro">Enable models and pick governance tiers. Fraud caught % in step 3 syncs from included models when enabled. Official MRM report names and sharing rules live in <a href="https://www.notion.so/Model-Governance-documentation-fcf4aea9d2ff4b2caf4ff8c6e5b38df0" target="_blank" rel="noopener noreferrer">Model Governance documentation</a> (Notion).</p>
 
-    <div id="model-cards" class="model-grid"></div>
+    <div id="model-cards"></div>
 
     <details class="config-details" id="config-details" style="margin-top:16px">
       <summary>Import / export configuration</summary>
@@ -1095,6 +1119,8 @@ tr:hover td { background: var(--surface-2); transition: background var(--t) }
    ============================================================ */
 
 // ── Default config ──────────────────────────────────────────
+const GOVERNANCE_DOC_URL = "https://www.notion.so/Model-Governance-documentation-fcf4aea9d2ff4b2caf4ff8c6e5b38df0";
+
 const GOVERNANCE_SHAPE_REF = [
   { riskDepth: 0.01, cumulativeFraudCapture: 0.4138, precision: 0.8276, lift: 41.38 },
   { riskDepth: 0.02, cumulativeFraudCapture: 0.5491, precision: 0.5491, lift: 27.455 },
@@ -1141,7 +1167,9 @@ const DEFAULT_CONFIG = {
     {
       id: "three_pf",
       label: "Sigma Identity",
-      sourceName: "Model governance — Third-Party Fraud (3PF / Sigma Identity)",
+      sourceName: "Sigma All v4.1 MRM (3PF) — Model Governance documentation (Notion)",
+      governanceReport: "Sigma All v4.1",
+      tierSource: "workbook",
       enabled: true,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1163,7 +1191,9 @@ const DEFAULT_CONFIG = {
     {
       id: "synthetic_v41_final_norm_score",
       label: "Synthetic",
-      sourceName: "Model governance — Synthetic Identity Fraud",
+      sourceName: "Sigma Synthetic v4.1 MRM — Model Governance documentation (Notion)",
+      governanceReport: "Sigma Synthetic v4.1",
+      tierSource: "workbook",
       enabled: true,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1175,7 +1205,7 @@ const DEFAULT_CONFIG = {
         { riskDepth: 0.03, cumulativeFraudCapture: 0.7414, precision: 0.4943, lift: 24.713 },
         { riskDepth: 0.04, cumulativeFraudCapture: 0.7909, precision: 0.39545, lift: 19.773 },
         { riskDepth: 0.05, cumulativeFraudCapture: 0.8276, precision: 0.33104, lift: 16.552 },
-        { riskDepth: 0.06, cumulativeFraudCapture: 0.3488, precision: 0.11627, lift: 5.813 },
+        { riskDepth: 0.06, cumulativeFraudCapture: 0.8452, precision: 0.14087, lift: 7.043 },
         { riskDepth: 0.07, cumulativeFraudCapture: 0.86312, precision: 0.24661, lift: 12.330 },
         { riskDepth: 0.08, cumulativeFraudCapture: 0.88088, precision: 0.22022, lift: 11.011 },
         { riskDepth: 0.09, cumulativeFraudCapture: 0.89864, precision: 0.19970, lift: 9.985 },
@@ -1185,7 +1215,9 @@ const DEFAULT_CONFIG = {
     {
       id: "one_pf",
       label: "FPF",
-      sourceName: "Model governance — First-Party Fraud (FPF)",
+      sourceName: "Sigma FPF Identity Manipulation v1.0 MRM — Model Governance documentation (Notion)",
+      governanceReport: "Sigma FPF Identity Manipulation v1.0",
+      tierSource: "workbook",
       enabled: true,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1207,7 +1239,9 @@ const DEFAULT_CONFIG = {
     {
       id: "email_risk",
       label: "Email Risk",
-      sourceName: "Model governance — Email Risk (import tiers from Individual Models sheet)",
+      sourceName: "Email RiskScore v4 MRM — Model Governance documentation (Notion)",
+      governanceReport: "Email RiskScore v4",
+      tierSource: "estimated",
       enabled: false,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1218,7 +1252,9 @@ const DEFAULT_CONFIG = {
     {
       id: "phone_risk",
       label: "Phone Risk",
-      sourceName: "Model governance — Phone Risk (import tiers from Individual Models sheet)",
+      sourceName: "Phone RiskScore v4 MRM — Model Governance documentation (Notion)",
+      governanceReport: "Phone RiskScore v4",
+      tierSource: "estimated",
       enabled: false,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1229,7 +1265,9 @@ const DEFAULT_CONFIG = {
     {
       id: "address_risk",
       label: "Address Risk",
-      sourceName: "Model governance — Address Risk (import tiers from Individual Models sheet)",
+      sourceName: "Address RiskScore v4 MRM — Model Governance documentation (Notion)",
+      governanceReport: "Address RiskScore v4",
+      tierSource: "estimated",
       enabled: false,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1240,7 +1278,9 @@ const DEFAULT_CONFIG = {
     {
       id: "device_risk",
       label: "Device Risk",
-      sourceName: "Model governance — Device Risk (import tiers from Individual Models sheet)",
+      sourceName: "Device Risk — not on Notion governance index; estimated tiers",
+      governanceReport: null,
+      tierSource: "estimated",
       enabled: false,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1251,7 +1291,9 @@ const DEFAULT_CONFIG = {
     {
       id: "ato",
       label: "ATO",
-      sourceName: "Model governance — Account Takeover (import tiers from Individual Models sheet)",
+      sourceName: "Account Takeover — not on Notion governance index; estimated tiers",
+      governanceReport: null,
+      tierSource: "estimated",
       enabled: false,
       autoMetrics: true,
       selectedDepth: 0.03,
@@ -1347,6 +1389,15 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, ch =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])
   )
+}
+function setClass(id, className) {
+  const el = $(id);
+  if (el) el.className = className;
+}
+
+function setStyle(id, prop, value) {
+  const el = $(id);
+  if (el && el.style) el.style[prop] = value;
 }
 function nChoose2(n) { return n * (n - 1) / 2 }
 
@@ -1535,26 +1586,36 @@ function renderApplicantValue(applicationVolume, fraudRate, socureRecall) {
   const set = (id, text) => { const el = $(id); if (el) el.textContent = text };
 
   if (av.fraudPrevention.syncFromScenario) {
-    $("roi-fraud-socure").value = pctInput(r.fraudSocureRate, 1);
-    $("roi-fraud-socure").readOnly = true;
-    $("roi-fraud-socure").style.opacity = "0.7";
+    const fraudSocure = $("roi-fraud-socure");
+    if (fraudSocure) {
+      fraudSocure.value = pctInput(r.fraudSocureRate, 1);
+      fraudSocure.readOnly = true;
+      fraudSocure.style.opacity = "0.7";
+    }
   } else {
-    $("roi-fraud-socure").readOnly = false;
-    $("roi-fraud-socure").style.opacity = "";
+    const fraudSocure = $("roi-fraud-socure");
+    if (fraudSocure) {
+      fraudSocure.readOnly = false;
+      fraudSocure.style.opacity = "";
+    }
   }
 
   if (av.manualReview.linkToAutoApproval) {
-    $("roi-manual-baseline").value = pctInput(av.manualReview.baselineRate, 1);
-    $("roi-manual-socure").value = pctInput(av.manualReview.socureRate, 1);
-    $("roi-manual-baseline").readOnly = true;
-    $("roi-manual-socure").readOnly = true;
-    $("roi-manual-baseline").style.opacity = "0.7";
-    $("roi-manual-socure").style.opacity = "0.7";
+    set("roi-manual-baseline", pct(av.manualReview.baselineRate, 1));
+    set("roi-manual-socure", pct(av.manualReview.socureRate, 1));
+    setStyle("roi-manual-baseline", "opacity", "0.7");
+    setStyle("roi-manual-socure", "opacity", "0.7");
+    const manualBaseline = $("roi-manual-baseline");
+    const manualSocure = $("roi-manual-socure");
+    if (manualBaseline) manualBaseline.readOnly = true;
+    if (manualSocure) manualSocure.readOnly = true;
   } else {
-    $("roi-manual-baseline").readOnly = false;
-    $("roi-manual-socure").readOnly = false;
-    $("roi-manual-baseline").style.opacity = "";
-    $("roi-manual-socure").style.opacity = "";
+    setStyle("roi-manual-baseline", "opacity", "");
+    setStyle("roi-manual-socure", "opacity", "");
+    const manualBaseline = $("roi-manual-baseline");
+    const manualSocure = $("roi-manual-socure");
+    if (manualBaseline) manualBaseline.readOnly = false;
+    if (manualSocure) manualSocure.readOnly = false;
   }
 
   // Status quo vs Socure comparison
@@ -1587,7 +1648,7 @@ function renderApplicantValue(applicationVolume, fraudRate, socureRecall) {
   // Pillar outputs
   const autoDelta = formatDeltaPp(av.autoApproval.baselineRate, av.autoApproval.socureRate, true);
   set("roi-auto-delta", autoDelta.text);
-  $("roi-auto-delta").className = "roi-compare-delta" + autoDelta.cls;
+  setClass("roi-auto-delta", "roi-compare-delta" + autoDelta.cls);
   set("out-auto-baseline", pct(av.autoApproval.baselineRate, 1));
   set("out-auto-socure", pct(av.autoApproval.socureRate, 1));
   set("roi-auto-incremental", fmt(r.incrementalAuto));
@@ -1596,7 +1657,7 @@ function renderApplicantValue(applicationVolume, fraudRate, socureRecall) {
 
   const manualDelta = formatDeltaPp(av.manualReview.baselineRate, av.manualReview.socureRate, false);
   set("roi-manual-delta", manualDelta.text);
-  $("roi-manual-delta").className = "roi-compare-delta" + manualDelta.cls;
+  setClass("roi-manual-delta", "roi-compare-delta" + manualDelta.cls);
   set("out-manual-baseline", pct(av.manualReview.baselineRate, 1));
   set("out-manual-socure", pct(av.manualReview.socureRate, 1));
   set("roi-manual-avoided", fmt(r.reviewsAvoided));
@@ -1612,7 +1673,7 @@ function renderApplicantValue(applicationVolume, fraudRate, socureRecall) {
 
   const fraudDelta = formatDeltaPp(av.fraudPrevention.baselineRate, r.fraudSocureRate, true);
   set("roi-fraud-delta", fraudDelta.text);
-  $("roi-fraud-delta").className = "roi-compare-delta" + fraudDelta.cls;
+  setClass("roi-fraud-delta", "roi-compare-delta" + fraudDelta.cls);
   set("out-fraud-baseline", pct(av.fraudPrevention.baselineRate, 1));
   set("out-fraud-socure", pct(r.fraudSocureRate, 1));
   set("roi-fraud-incremental", fmt(r.incrementalFraudCaught));
@@ -1667,6 +1728,7 @@ function governanceTierValue(p) {
 function findGovernancePoint(points, depthValue) {
   const depth = num(depthValue, 0) / 100;
   const sorted = sortedGovernancePoints(points);
+  if (!sorted.length) return null;
   const exact = sorted.find(p => Math.abs(p.riskDepth - depth) < 0.00001);
   if (exact) return exact;
   return sorted[closestPointIndex(sorted, depth)] || sorted[0];
@@ -1941,157 +2003,182 @@ function removeModel(idx) {
 }
 
 // ── Model cards render ───────────────────────────────────────
-function renderModelCards() {
-  const container = $("model-cards");
-  container.innerHTML = "";
+function renderModelCard(model, idx) {
+  const sortedPoints = sortedGovernancePoints(model.points);
+  const selectedPoint = findGovernancePoint(sortedPoints, pctInput(model.selectedDepth, 4)) || sortedPoints[0];
+  const options = sortedPoints.length && selectedPoint
+    ? sortedPoints.map(p => {
+        const sel = Math.abs(p.riskDepth - selectedPoint.riskDepth) < 0.00001 ? " selected" : "";
+        return `<option value="${governanceTierValue(p)}"${sel}>${formatGovernanceTierOption(p)}</option>`;
+      }).join("")
+    : `<option value="">No governance tiers loaded</option>`;
 
-  config.models.forEach((model, idx) => {
-    const sortedPoints = sortedGovernancePoints(model.points);
-    const selectedPoint = findGovernancePoint(sortedPoints, pctInput(model.selectedDepth, 4));
-    const options = sortedPoints.map(p => {
-      const sel = Math.abs(p.riskDepth - selectedPoint.riskDepth) < 0.00001 ? " selected" : "";
-      return `<option value="${governanceTierValue(p)}"${sel}>${formatGovernanceTierOption(p)}</option>`;
-    }).join("");
+  const card = document.createElement("article");
+  card.className = "model-card" + (model.enabled ? "" : " excluded");
+  const catalogBadge = model.enabled ? "" : `<span class="catalog-badge">Catalog</span>`;
 
-    const card = document.createElement("article");
-    card.className = "model-card" + (model.enabled ? "" : " excluded");
-
-    card.innerHTML = `
-      <div class="model-top">
-        <div class="model-name-wrap">
-          <label for="model-name-${idx}">Model name</label>
-          <input id="model-name-${idx}" type="text" value="${escapeHtml(model.label)}">
-        </div>
-        <div class="model-top-right">
-          <label class="include-toggle" title="Include this model in combined calculation">
-            <input id="enabled-${idx}" type="checkbox" ${model.enabled ? "checked" : ""}>
-            Include
-          </label>
-          <button class="icon-btn ghost danger" id="remove-${idx}" type="button" title="Remove model" aria-label="Remove ${escapeHtml(model.label)}">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
+  card.innerHTML = `
+    <div class="model-top">
+      <div class="model-name-wrap">
+        <label for="model-name-${idx}">Model name${catalogBadge}</label>
+        <input id="model-name-${idx}" type="text" value="${escapeHtml(model.label)}">
       </div>
-
-      <label for="preset-${idx}">Model governance performance tier</label>
-      <select id="preset-${idx}" class="governance-select">${options}</select>
-      <small>Risk depth tiers validated in ${escapeHtml(model.label)} model governance documentation.</small>
-
-      <div class="model-fields">
-        <div>
-          <label for="depth-${idx}">Review rate (%)</label>
-          <input id="depth-${idx}" type="number" min="0" max="100" step="0.1" value="${pctInput(model.selectedDepth, 2)}">
-        </div>
-        <div>
-          <label for="capture-${idx}">Fraud caught (%)</label>
-          <input id="capture-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedCapture, 2)}">
-        </div>
-        <div>
-          <label for="precision-${idx}">Review precision (%)</label>
-          <input id="precision-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedPrecision || 0, 2)}">
-        </div>
+      <div class="model-top-right">
+        <label class="include-toggle" title="Include this model in combined calculation">
+          <input id="enabled-${idx}" type="checkbox" ${model.enabled ? "checked" : ""}>
+          Include
+        </label>
+        <button class="icon-btn ghost danger" id="remove-${idx}" type="button" title="Remove model" aria-label="Remove ${escapeHtml(model.label)}">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
+    </div>
 
-      <label class="auto-row">
-        <input id="auto-${idx}" type="checkbox" ${model.autoMetrics ? "checked" : ""}>
-        Auto-fill capture and precision from model governance when review rate changes.
-      </label>
+    <label for="preset-${idx}">Model governance performance tier</label>
+    <select id="preset-${idx}" class="governance-select">${options}</select>
+    <small>Risk depth tiers validated in ${escapeHtml(model.label)} model governance documentation.</small>
 
-      <div class="mini-grid">
-        <div class="mini-stat">
-          <span>Sent to review</span>
-          <strong id="mini-flagged-${idx}">—</strong>
-        </div>
-        <div class="mini-stat">
-          <span>Fraud cases caught</span>
-          <strong id="mini-caught-${idx}">—</strong>
-        </div>
+    <div class="model-fields">
+      <div>
+        <label for="depth-${idx}">Review rate (%)</label>
+        <input id="depth-${idx}" type="number" min="0" max="100" step="0.1" value="${pctInput(model.selectedDepth, 2)}">
       </div>
+      <div>
+        <label for="capture-${idx}">Fraud caught (%)</label>
+        <input id="capture-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedCapture, 2)}">
+      </div>
+      <div>
+        <label for="precision-${idx}">Review precision (%)</label>
+        <input id="precision-${idx}" type="number" min="0" max="100" step="0.01" value="${pctInput(model.selectedPrecision || 0, 2)}">
+      </div>
+    </div>
 
-      <div class="mini-chart" id="mini-chart-${idx}"></div>
-      <div class="source-note">Source: ${escapeHtml(model.sourceName || model.id)}</div>
-    `;
+    <label class="auto-row">
+      <input id="auto-${idx}" type="checkbox" ${model.autoMetrics ? "checked" : ""}>
+      Auto-fill capture and precision from model governance when review rate changes.
+    </label>
 
-    container.appendChild(card);
+    <div class="mini-grid">
+      <div class="mini-stat">
+        <span>Sent to review</span>
+        <strong id="mini-flagged-${idx}">—</strong>
+      </div>
+      <div class="mini-stat">
+        <span>Fraud cases caught</span>
+        <strong id="mini-caught-${idx}">—</strong>
+      </div>
+    </div>
 
-    // Wire up remove
-    $(`remove-${idx}`).addEventListener("click", () => removeModel(idx));
+    <div class="mini-chart" id="mini-chart-${idx}"></div>
+    <div class="source-note">Source: ${escapeHtml(model.sourceName || model.id)}${model.tierSource === "estimated" ? " · shape-scaled placeholder" : model.tierSource === "workbook" ? " · validated tier table" : ""} · <a href="${GOVERNANCE_DOC_URL}" target="_blank" rel="noopener noreferrer">Governance docs</a></div>
+  `;
 
-    // Wire up model name
-    $(`model-name-${idx}`).addEventListener("input", e => {
-      model.label = e.target.value || `Model ${idx + 1}`;
-      update(false);
-    });
+  // Wire up remove
+  const removeBtn = $(`remove-${idx}`);
+  if (removeBtn) removeBtn.addEventListener("click", () => removeModel(idx));
 
-    // Wire up enabled
-    $(`enabled-${idx}`).addEventListener("change", e => {
-      model.enabled = e.target.checked;
-      card.classList.toggle("excluded", !model.enabled);
-      update(false);
-    });
+  // Wire up model name
+  $(`model-name-${idx}`).addEventListener("input", e => {
+    model.label = e.target.value || `Model ${idx + 1}`;
+    update(false);
+  });
 
-    // Wire up preset — selects a validated governance tier for this model
-    $(`preset-${idx}`).addEventListener("change", e => {
-      const p = findGovernancePoint(model.points, e.target.value);
-      if (!p) return;
-      model.selectedDepth = p.riskDepth;
+  // Wire up enabled
+  $(`enabled-${idx}`).addEventListener("change", e => {
+    model.enabled = e.target.checked;
+    renderModelCards();
+    update(false);
+  });
+
+  // Wire up preset — selects a validated governance tier for this model
+  $(`preset-${idx}`).addEventListener("change", e => {
+    const p = findGovernancePoint(model.points, e.target.value);
+    if (!p) return;
+    model.selectedDepth = p.riskDepth;
+    model.selectedCapture = p.cumulativeFraudCapture;
+    model.selectedPrecision = p.precision;
+    model.autoMetrics = true;
+    $(`depth-${idx}`).value = pctInput(model.selectedDepth, 2);
+    $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
+    $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
+    $(`auto-${idx}`).checked = true;
+    renderMiniChart(model, $(`mini-chart-${idx}`));
+    update(false);
+  });
+
+  // Wire up depth
+  $(`depth-${idx}`).addEventListener("input", e => {
+    model.selectedDepth = clamp(num(e.target.value, pctInput(model.selectedDepth, 2)) / 100, 0, 1);
+    if (model.autoMetrics) {
+      const p = interpolatePoint(model.points, model.selectedDepth);
       model.selectedCapture = p.cumulativeFraudCapture;
       model.selectedPrecision = p.precision;
-      model.autoMetrics = true;
-      $(`depth-${idx}`).value = pctInput(model.selectedDepth, 2);
       $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
       $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
-      $(`auto-${idx}`).checked = true;
-      renderMiniChart(model, $(`mini-chart-${idx}`));
-      update(false);
-    });
-
-    // Wire up depth
-    $(`depth-${idx}`).addEventListener("input", e => {
-      model.selectedDepth = clamp(num(e.target.value, pctInput(model.selectedDepth, 2)) / 100, 0, 1);
-      if (model.autoMetrics) {
-        const p = interpolatePoint(model.points, model.selectedDepth);
-        model.selectedCapture = p.cumulativeFraudCapture;
-        model.selectedPrecision = p.precision;
-        $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
-        $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
-      }
-      syncPresetSelect(idx, model);
-      renderMiniChart(model, $(`mini-chart-${idx}`));
-      update(false);
-    });
-
-    // Wire up capture
-    $(`capture-${idx}`).addEventListener("input", e => {
-      model.selectedCapture = clamp(num(e.target.value, pctInput(model.selectedCapture, 2)) / 100, 0, 1);
-      model.autoMetrics = false;
-      $(`auto-${idx}`).checked = false;
-      update(false);
-    });
-
-    // Wire up precision
-    $(`precision-${idx}`).addEventListener("input", e => {
-      model.selectedPrecision = clamp(num(e.target.value, pctInput(model.selectedPrecision || 0, 2)) / 100, 0, 1);
-      model.autoMetrics = false;
-      $(`auto-${idx}`).checked = false;
-      update(false);
-    });
-
-    // Wire up auto
-    $(`auto-${idx}`).addEventListener("change", e => {
-      model.autoMetrics = e.target.checked;
-      if (model.autoMetrics) {
-        const p = interpolatePoint(model.points, model.selectedDepth);
-        model.selectedCapture = p.cumulativeFraudCapture;
-        model.selectedPrecision = p.precision;
-        $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
-        $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
-      }
-      update(false);
-    });
-
-    // Render mini chart
+    }
+    syncPresetSelect(idx, model);
     renderMiniChart(model, $(`mini-chart-${idx}`));
+    update(false);
+  });
+
+  // Wire up capture
+  $(`capture-${idx}`).addEventListener("input", e => {
+    model.selectedCapture = clamp(num(e.target.value, pctInput(model.selectedCapture, 2)) / 100, 0, 1);
+    model.autoMetrics = false;
+    $(`auto-${idx}`).checked = false;
+    update(false);
+  });
+
+  // Wire up precision
+  $(`precision-${idx}`).addEventListener("input", e => {
+    model.selectedPrecision = clamp(num(e.target.value, pctInput(model.selectedPrecision || 0, 2)) / 100, 0, 1);
+    model.autoMetrics = false;
+    $(`auto-${idx}`).checked = false;
+    update(false);
+  });
+
+  // Wire up auto
+  $(`auto-${idx}`).addEventListener("change", e => {
+    model.autoMetrics = e.target.checked;
+    if (model.autoMetrics) {
+      const p = interpolatePoint(model.points, model.selectedDepth);
+      model.selectedCapture = p.cumulativeFraudCapture;
+      model.selectedPrecision = p.precision;
+      $(`capture-${idx}`).value = pctInput(model.selectedCapture, 2);
+      $(`precision-${idx}`).value = pctInput(model.selectedPrecision, 2);
+    }
+    update(false);
+  });
+
+  renderMiniChart(model, $(`mini-chart-${idx}`));
+  return card;
+}
+
+function renderModelCards() {
+  const container = $("model-cards");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const enabled = [];
+  const catalog = [];
+  config.models.forEach((model, idx) => {
+    (model.enabled ? enabled : catalog).push({ model, idx });
+  });
+
+  const groups = [
+    { title: `Included in combined lift (${enabled.length})`, items: enabled },
+    { title: `Model catalog — enable to include (${catalog.length})`, items: catalog }
+  ].filter(group => group.items.length);
+
+  groups.forEach(group => {
+    const section = document.createElement("section");
+    section.className = "model-group";
+    section.innerHTML = `<h3 class="model-group-label">${group.title}</h3>`;
+    const grid = document.createElement("div");
+    grid.className = "model-grid";
+    group.items.forEach(({ model, idx }) => grid.appendChild(renderModelCard(model, idx)));
+    section.appendChild(grid);
+    container.appendChild(section);
   });
 }
 
@@ -2412,49 +2499,56 @@ async function copyConfig() {
 
 // ── Init ─────────────────────────────────────────────────────
 function init() {
-  // Apply saved theme
-  applyTheme();
+  try {
+    applyTheme();
+    renderModelCards();
+    renderCheckpointRows();
+    update(true);
 
-  // Scenario & ROI control listeners
-  [
-    "application-volume", "fraud-base-mode", "fraud-rate",
-    "global-capture-mode", "custom-global-capture",
-    "pairwise-overlap", "review-overlap-basis", "custom-depth",
-    "roi-onboarding-share", "roi-manual-cost", "roi-customer-ltv", "roi-fraud-cost",
-    "roi-onboarding-mode",
-    "roi-auto-baseline", "roi-auto-socure",
-    "roi-manual-baseline", "roi-manual-socure",
-    "roi-fraud-baseline", "roi-fraud-socure"
-  ].forEach(id => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener("input", () => update(false));
-    el.addEventListener("change", () => update(false));
-  });
-  ["roi-manual-link-auto", "roi-fraud-sync-scenario"].forEach(id => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener("change", () => update(false));
-  });
+    [
+      "application-volume", "fraud-base-mode", "fraud-rate",
+      "global-capture-mode", "custom-global-capture",
+      "pairwise-overlap", "review-overlap-basis", "custom-depth",
+      "roi-onboarding-share", "roi-manual-cost", "roi-customer-ltv", "roi-fraud-cost",
+      "roi-onboarding-mode",
+      "roi-auto-baseline", "roi-auto-socure",
+      "roi-manual-baseline", "roi-manual-socure",
+      "roi-fraud-baseline", "roi-fraud-socure"
+    ].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("input", () => update(false));
+      el.addEventListener("change", () => update(false));
+    });
+    ["roi-manual-link-auto", "roi-fraud-sync-scenario"].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("change", () => update(false));
+    });
 
-  // Button listeners
-  $("sync-config").addEventListener("click", syncConfigJson);
-  $("apply-config").addEventListener("click", applyConfigJson);
-  $("reset-defaults").addEventListener("click", resetDefaults);
-  $("add-model").addEventListener("click", addModel);
-  $("theme-toggle").addEventListener("click", toggleTheme);
-  $("export-config").addEventListener("click", exportConfig);
-  $("copy-config").addEventListener("click", copyConfig);
+    [
+      ["sync-config", syncConfigJson],
+      ["apply-config", applyConfigJson],
+      ["reset-defaults", resetDefaults],
+      ["add-model", addModel],
+      ["theme-toggle", toggleTheme],
+      ["export-config", exportConfig],
+      ["copy-config", copyConfig]
+    ].forEach(([id, fn]) => {
+      const el = $(id);
+      if (el) el.addEventListener("click", fn);
+    });
 
-  $("import-config-btn").addEventListener("click", () => {
-    $("import-file-input").click();
-  });
-  $("import-file-input").addEventListener("change", handleImportFile);
-
-  // Initial render
-  renderModelCards();
-  renderCheckpointRows();
-  update(true);
+    const importBtn = $("import-config-btn");
+    const importInput = $("import-file-input");
+    if (importBtn && importInput) {
+      importBtn.addEventListener("click", () => importInput.click());
+      importInput.addEventListener("change", handleImportFile);
+    }
+  } catch (e) {
+    console.error(e);
+    showBanner("Dashboard failed to initialize: " + e.message, "warning");
+  }
 }
 
 if (document.readyState === "loading") {
